@@ -1,12 +1,5 @@
-import threading
+from db import create_session
+from sqlalchemy import text
 
-if __name__ == "__main__":
-    try:
-        # bot_thread = threading.Thread(
-        #     target=...  # заменя
-        # )
-        # bot_thread.daemon = True
-        # bot_thread.start()
-        pass
-    except KeyboardInterrupt:
-        print("Бот выключен")
+session = create_session()
+print(session.execute(text('SHOW TABLES')).fetchall())
