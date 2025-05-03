@@ -1,5 +1,79 @@
+{% extends "base.html" %}
+
 {% block content %}
-<h1>
-    Поиск
-</h1>
+<div class="container mb-5">
+    <h1 class="mb-4">Поиск</h1>
+
+    <form method="GET" action="/search" class="mb-4">
+        <div class="input-group">
+            <input type="text" class="form-control bg-dark text-white border-secondary" placeholder="Введите название трека, исполнителя..." name="q" value="{{ query|default('') }}">
+            <button class="btn btn-success" type="submit"><i class="bi bi-search"></i></button>
+        </div>
+    </form>
+
+    {% if results %}
+    <h4 class="mb-3">Результаты поиска</h4>
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+        {% for item in results %}
+        <div class="col">
+            <div class="card bg-dark text-white h-100 border-0 shadow-sm position-relative overflow-hidden">
+                <img src="{{ item.image }}" class="card-img-top" alt="Обложка {{ item.name }}">
+                <div class="card-body">
+                    <h5 class="card-title">{{ item.name }}</h5>
+                    {% if item.artist %}
+                    <p class="card-text text-muted small">{{ item.artist }}</p>
+                    {% endif %}
+                </div>
+                <div class="play-overlay position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center">
+                    <button class="btn btn-success rounded-circle shadow">
+                        <i class="bi bi-play-fill fs-4"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% elif query %}
+        <p class="text-muted">Ничего не найдено по запросу <strong>"{{ query }}"</strong>.</p>
+    {% else %}
+        <h5 class="text-muted">Начните вводить, чтобы найти треки или исполнителей.</h5>
+    {% endif %}
+</div>
+
+<nav class="bottom-nav navbar fixed-bottom navbar-dark bg-dark d-md-none border-top">
+    <div class="container-fluid d-flex justify-content-around py-1">
+        <a href="/" class="text-center text-decoration-none text-white">
+            <i class="bi bi-house-door-fill fs-4"></i><br>
+            <small>Главная</small>
+        </a>
+        <a href="/search" class="text-center text-decoration-none text-white">
+            <i class="bi bi-search fs-4"></i><br>
+            <small class="fw-bold">Поиск</small>
+        </a>
+        <a href="/library" class="text-center text-decoration-none text-white">
+            <i class="bi bi-collection fs-4"></i><br>
+            <small>Моя музыка</small>
+        </a>
+    </div>
+</nav>
+
+<style>
+    .play-overlay {
+        background-color: rgba(0, 0, 0, 0.6);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .card:hover .play-overlay {
+        opacity: 1;
+    }
+
+    .card:hover {
+        transform: scale(1.03);
+        transition: transform 0.2s ease-in-out;
+        cursor: pointer;
+    }
+</style>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 {% endblock %}
