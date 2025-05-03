@@ -47,7 +47,7 @@ class S3Manager:
         :raises ValueError: Если файл с таким именем уже существует
         """
         if self._file_exists(filename):
-            raise ValueError('File already exists: {}'.format(filename))
+            raise ValueError(f'File already exists: {filename}')
 
         self._s3_client.upload_fileobj(
             Fileobj=content,
@@ -63,7 +63,7 @@ class S3Manager:
         :raises ValueError: Если файл с таким именем не существует
         """
         if not self._file_exists(filename):
-            raise ValueError('File not found: {}'.format(filename))
+            raise ValueError(f'File not found: {filename}')
 
         self._s3_client.delete_object(
             Bucket=BUCKET_NAME,
@@ -80,7 +80,7 @@ class S3Manager:
         :raises ValueError: Если файл с таким именем уже существует
         """
         if not self._file_exists(filename):
-            raise ValueError('File not found: {}'.format(filename))
+            raise ValueError(f'File not found: {filename}')
 
         self._s3_client.upload_fileobj(
             Fileobj=content,
