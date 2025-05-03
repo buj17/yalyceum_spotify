@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container">
+<div class="container mb-5">
     <h1 class="mb-4">Добро пожаловать, {{ user_name }}!</h1>
 
     <h4 class="mb-3">Саундтреки</h4>
@@ -23,6 +23,19 @@
         {% endfor %}
     </div>
 </div>
+
+<nav class="bottom-nav navbar fixed-bottom navbar-dark bg-dark d-md-none border-top">
+    <div class="container-fluid d-flex justify-content-around py-1">
+        <a href="/" class="text-center text-decoration-none text-white">
+            <i class="bi bi-house-door-fill fs-4"></i><br>
+            <small>Главная</small>
+        </a>
+        <a href="/search" class="text-center text-decoration-none text-white">
+            <i class="bi bi-search fs-4"></i><br>
+            <small>Поиск</small>
+        </a>
+    </div>
+</nav>
 
 <style>
     .soundtrack-card {
@@ -47,4 +60,3 @@
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 {% endblock %}
-
