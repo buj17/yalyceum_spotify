@@ -1,6 +1,20 @@
+{% extends "base.html" %}
+
 {% block content %}
-<h1>
-    Доброе утро
-</h1>
-<p>ТУТ СПИСОК РАНДОМ ТРЕКОВ</p>
+<div class="container">
+    <h1 class="mb-4">Добро пожаловать, {{ user_name }}!</h1>
+
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+        {% for soundtrack in soundtracks %}
+        <div class="col">
+            <div class="card bg-dark text-white h-100 border-0 shadow-sm">
+                <img src="{{ soundtrack.image }}" class="card-img-top" alt="Обложка {{ soundtrack.name }}">
+                <div class="card-body">
+                    <h5 class="card-title">{{ soundtrack.name }}</h5>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
 {% endblock %}
