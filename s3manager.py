@@ -23,7 +23,7 @@ class S3Manager:
 
         :param filename: Название файла, которое необходимо загрузить
         :type filename: str
-        :raises ValueError: Если данный не найден в хранилище
+        :raises ValueError: Если файл с таким именем не существует
         :return: StreamingBody объект для работы с файлом
         :rtype: StreamingBody
         """
@@ -60,7 +60,7 @@ class S3Manager:
 
         :param filename: Название файла, который требуется удалить
         :type filename: str
-        :raises ValueError: Если файла с таким именем не существует
+        :raises ValueError: Если файл с таким именем не существует
         """
         if not self._file_exists(filename):
             raise ValueError('File not found: {}'.format(filename))
