@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <style>
@@ -15,7 +16,7 @@
 
         h1 {
             font-size: 3rem;
-            color: #1DB954; /* Spotify Green */
+            color: #1DB954;
         }
 
         h4 {
@@ -32,7 +33,7 @@
         }
 
         .navbar a:hover {
-            color: #1DB954; /* Spotify Green */
+            color: #1DB954;
         }
 
         .container {
@@ -57,7 +58,7 @@
             <a class="navbar-brand" href="#">MELODIA</a>
             <div class="d-flex">
                 <span class="navbar-text me-3">
-                    {{ user_name }} <!-- Здесь будет имя пользователя -->
+                    {{ user_name }}
                 </span>
                 <a href="/logout" class="btn btn-outline-light">Log Out</a>
             </div>
@@ -66,13 +67,24 @@
 
     <main role="main" class="container">
         {% block content %}
-        <!-- Здесь будет основной контент страницы -->
         {% endblock %}
     </main>
-
-    <div class="footer">
-        <p>&copy; 2025 MELODIA. Все права защищены.</p>
-    </div>
+    <nav class="bottom-nav navbar fixed-bottom navbar-dark bg-dark d-block border-top">
+        <div class="container-fluid d-flex justify-content-around py-1">
+            <a href="/" class="text-center text-decoration-none text-white">
+                <i class="bi bi-house-door-fill fs-4"></i><br>
+                <small>Главная</small>
+            </a>
+            <a href="/search" class="text-center text-decoration-none text-white">
+                <i class="bi bi-search fs-4"></i><br>
+                <small>Поиск</small>
+            </a>
+            <a href="/account" class="text-center text-decoration-none text-white">
+                <i class="bi bi-person-circle fs-4"></i><br>
+                <small>Аккаунт</small>
+            </a>
+        </div>
+    </nav>
 
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js" integrity="sha384-oBqDVmMz4fnFO9gyb6j4j3bZzK3rF2vJZzQdeKk5U3D7V0E5Jgg6g6lZ6g61KJ4p" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-pzjw8f+ua7Kw1TIq0b7c5K3WQhtdNS26azpqBFA4Jqa/T6lV0Dz6E5KN6O6OL4k6" crossorigin="anonymous"></script>
