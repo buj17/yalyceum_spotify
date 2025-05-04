@@ -15,7 +15,6 @@
         {% for playlist in playlists %}
         <div class="col">
             <div class="card bg-dark text-white h-100 border-0 shadow-sm position-relative overflow-hidden">
-                <img src="{{ playlist.image }}" class="card-img-top" alt="Обложка {{ playlist.name }}">
                 <div class="card-body d-flex flex-column">
                     <h5 class="card-title">{{ playlist.name }}</h5>
                     {% if playlist.description %}
@@ -31,23 +30,6 @@
         <p class="text-muted">У вас пока нет плейлистов.</p>
     {% endif %}
 </div>
-
-<nav class="bottom-nav navbar fixed-bottom navbar-dark bg-dark d-md-none border-top">
-    <div class="container-fluid d-flex justify-content-around py-1">
-        <a href="/" class="text-center text-decoration-none text-white">
-            <i class="bi bi-house-door-fill fs-4"></i><br>
-            <small>Главная</small>
-        </a>
-        <a href="/search" class="text-center text-decoration-none text-white">
-            <i class="bi bi-search fs-4"></i><br>
-            <small>Поиск</small>
-        </a>
-        <a href="/account" class="text-center text-decoration-none text-white">
-            <i class="bi bi-person-circle fs-4"></i><br>
-            <small class="fw-bold">Аккаунт</small>
-        </a>
-    </div>
-</nav>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 
