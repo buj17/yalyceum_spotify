@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mb-5" style="max-width: 500px;">
+    <h1 class="mb-4 text-center">Регистрация</h1>
+
+    <form method="POST" novalidate>
+        {{ form.hidden_tag() }}
+
+        <div class="mb-3">
+            {{ form.name.label(class="form-label") }}
+            {{ form.name(class="form-control bg-dark text-white border-secondary", placeholder="Ваше имя") }}
+            {% for error in form.name.errors %}
+                <div class="text-danger small">{{ error }}</div>
+            {% endfor %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.email.label(class="form-label") }}
+            {{ form.email(class="form-control bg-dark text-white border-secondary", placeholder="example@mail.com") }}
+            {% for error in form.email.errors %}
+                <div class="text-danger small">{{ error }}</div>
+            {% endfor %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.password.label(class="form-label") }}
+            {{ form.password(class="form-control bg-dark text-white border-secondary") }}
+            {% for error in form.password.errors %}
+                <div class="text-danger small">{{ error }}</div>
+            {% endfor %}
+        </div>
+
+        <div class="mb-4">
+            {{ form.confirm.label(class="form-label") }}
+            {{ form.confirm(class="form-control bg-dark text-white border-secondary") }}
+            {% for error in form.confirm.errors %}
+                <div class="text-danger small">{{ error }}</div>
+            {% endfor %}
+        </div>
+
+        {{ form.submit(class="btn btn-success w-100") }}
+    </form>
+
+    <p class="mt-4 text-center text-muted">Уже есть аккаунт? <a href="{{ url_for('login') }}" class="text-decoration-none text-success">Войти</a></p>
+</div>
+{% endblock %}
