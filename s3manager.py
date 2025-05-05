@@ -3,6 +3,7 @@ from io import BytesIO
 import boto3
 from botocore.response import StreamingBody
 from types_boto3_s3 import S3Client
+from types_boto3_s3.service_resource import BucketObjectsCollection
 
 BUCKET_NAME = 'melodia'
 
@@ -11,6 +12,7 @@ class S3Manager:
     """
     Класс для управления файлами в s3 хранилище
     """
+
     def __init__(self):
         self._session = boto3.session.Session()
         self._s3_client: S3Client = self._session.client(
@@ -37,16 +39,18 @@ class S3Manager:
 
         return file_object
 
-    def upload_file(self, filename: str, content: BytesIO | StreamingBody) -> None:
+    def upload_file(self, filename: str, content: BytesIO | StreamingBody, force: bool = False) -> None:
         """Загрузка файла в s3 хранилище
 
         :param filename: Название, под которым требуется сохранить файл
         :type filename: str
         :param content: BytesIO или StreamingBody объект с содержимым файла
         :type content: BytesIO | StreamingBody
+        :param force: Игнорировать существование файла
+        :type force: bool
         :raises ValueError: Если файл с таким именем уже существует
         """
-        if self._file_exists(filename):
+        if not force and self._file_exists(filename):
             raise ValueError(f'File already exists: {filename}')
 
         self._s3_client.upload_fileobj(
@@ -87,6 +91,17 @@ class S3Manager:
             Bucket=BUCKET_NAME,
             Key=filename
         )
+
+    def get_objects_collection(self) -> BucketObjectsCollection:
+        """Возвращает объект для просмотра информации о всех файлах в хранилище
+
+        :return: BucketObjectsCollection объект
+        :rtype: BucketObjectsCollection
+        """
+        s3_resource = self._session.resource('s3')
+        s3_bucket = s3_resource.Bucket(name=BUCKET_NAME)
+        bucket_objects_collection = s3_bucket.objects.all()
+        return bucket_objects_collection
 
     def _file_exists(self, filename: str):
         try:
