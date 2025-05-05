@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Home Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .message {
+            padding: 10px;
+            margin: 10px 0;
+            background: #f0f0f0;
+            border-left: 3px solid #333;
+        }
+        a {
+            color: #333;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome</h1>
+    
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="message">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    {% if current_user.is_authenticated %}
+        <p>Hello, {{ current_user.username }}!</p>
+        <p><a href="/logout">Logout</a></p>
+    {% else %}
+        <p>
+            <a href="/login">Login</a> or 
+            <a href="/register">Register</a>
+        </p>
+    {% endif %}
+</body>
+</html>

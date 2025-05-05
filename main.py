@@ -3,3 +3,4 @@ from sqlalchemy import text
 
 session = create_session()
 print(session.execute(text('SHOW TABLES')).fetchall())
+
