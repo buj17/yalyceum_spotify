@@ -18,7 +18,7 @@ user = User('qwe', '123')
 def home():
     """if not current_user.is_authenticated:
         redirect(url_for('register'))"""
-    return render_template('soundtracks.html', user=user, title='Главная')
+    return render_template('home.html', user=user, title='Главная')
 
 
 @app.route('/search', methods=['GET'])
