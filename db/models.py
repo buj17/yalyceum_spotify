@@ -1,7 +1,9 @@
 import datetime
 
 import sqlalchemy
+from flask_login import UserMixin
 from sqlalchemy.ext.declarative import declarative_base
+from werkzeug.security import generate_password_hash, check_password_hash
 
 Base = declarative_base()
 
@@ -9,6 +11,18 @@ Base = declarative_base()
 class Artist(Base):
     """Таблица артистов (исполнителей)"""
     __tablename__ = 'artists'
+
+    def __init__(self,
+                 *,
+                 name: str,
+                 bio: str | None = None,
+                 country: str | None = None,
+                 created_at: datetime.datetime = datetime.datetime.utcnow()):
+        super().__init__()
+        self.name = name
+        self.bio = bio
+        self.country = country
+        self.created_at = created_at
 
     id = sqlalchemy.Column(
         sqlalchemy.Integer,
@@ -117,3 +131,54 @@ class MusicArtistAssociation(Base):
     # Связи с основными таблицами
     music = sqlalchemy.orm.relationship("Music", back_populates="artists")
     artist = sqlalchemy.orm.relationship("Artist", back_populates="musics")
+
+
+class User(Base, UserMixin):
+    """Таблица пользователей"""
+    __tablename__ = 'users'
+
+    def __init__(self,
+                 *,
+                 username: str,
+                 email: str,
+                 password: str,
+                 is_active: bool = True):
+        super().__init__()
+        self.username = username
+        self.email = email
+        self.set_password(password)
+        self.is_active = is_active
+
+    id = sqlalchemy.Column(
+        sqlalchemy.Integer,
+        primary_key=True,
+        autoincrement=True
+    )
+    username = sqlalchemy.Column(
+        sqlalchemy.String(255),
+        nullable=False,
+        unique=True
+    )
+    email = sqlalchemy.Column(
+        sqlalchemy.String(255),
+        nullable=False,
+        unique=True
+    )
+    password = sqlalchemy.Column(
+        sqlalchemy.String(512),
+        nullable=False
+    )
+
+    is_active = sqlalchemy.Column(
+        sqlalchemy.Boolean,
+        default=True
+    )
+
+    def set_password(self, password: str):
+        self.password = generate_password_hash(password)
+
+    def check_password(self, password: str) -> bool:
+        return check_password_hash(self.password, password)
+
+    def __repr__(self):
+        return f'<User {self.username}>'
