@@ -12,6 +12,18 @@ class Artist(Base):
     """Таблица артистов (исполнителей)"""
     __tablename__ = 'artists'
 
+    def __init__(self,
+                 *,
+                 name: str,
+                 bio: str | None = None,
+                 country: str | None = None,
+                 created_at: datetime.datetime = datetime.datetime.utcnow()):
+        super().__init__()
+        self.name = name
+        self.bio = bio
+        self.country = country
+        self.created_at = created_at
+
     id = sqlalchemy.Column(
         sqlalchemy.Integer,
         primary_key=True,
