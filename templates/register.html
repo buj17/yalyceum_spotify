@@ -7,9 +7,9 @@
         {{ form.hidden_tag() }}
 
         <div class="mb-3">
-            {{ form.name.label(class="form-label") }}
-            {{ form.name(class="form-control bg-dark text-white border-secondary", placeholder="Ваше имя") }}
-            {% for error in form.name.errors %}
+            {{ form.username.label(class="form-label") }}
+            {{ form.username(class="form-control bg-dark text-white border-secondary", placeholder="Ваше имя") }}
+            {% for error in form.username.errors %}
                 <div class="text-danger small">{{ error }}</div>
             {% endfor %}
         </div>
@@ -39,6 +39,10 @@
         </div>
 
         {{ form.submit(class="btn btn-success w-100") }}
+
+        <div class="text-warning">
+            {{ massage }}
+        </div>
     </form>
 
     <p class="mt-4 text-center text-muted">Уже есть аккаунт? <a href="{{ url_for('login') }}" class="text-decoration-none text-success">Войти</a></p>

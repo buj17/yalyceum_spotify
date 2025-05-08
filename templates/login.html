@@ -23,6 +23,10 @@
         </div>
 
         {{ form.submit(class="btn btn-success w-100") }}
+
+        <div class="text-warning">
+            {{ massage }}
+        </div>
     </form>
 
     <p class="mt-4 text-center text-muted">Нет аккаунта? <a href="{{ url_for('register') }}" class="text-decoration-none text-success">Зарегистрируйтесь</a></p>
