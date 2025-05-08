@@ -24,20 +24,21 @@
                     <p class="card-text text-muted small">{{ soundtrack.artist }}</p>
                     {% endif %}
                 </div>
-                <div class="play-overlay position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center">
-                    <button class="btn btn-success rounded-circle shadow">
+                <div class="play-overlay position-absolute top-0 start-0 w-100 h-100 d-flex flex-column justify-content-center align-items-center gap-3">
+                    <button class="btn btn-success rounded-circle shadow" title="Проиграть">
                         <i class="bi bi-play-fill fs-4"></i>
                     </button>
+
+                    {% if soundtrack.is_favorite %}
+                        <button class="btn btn-danger rounded-circle shadow favorite-btn" title="Убрать из избранного">
+                            <i class="bi bi-heart-fill fs-5"></i>
+                        </button>
+                    {% else %}
+                        <button class="btn btn-outline-light rounded-circle shadow favorite-btn" title="Добавить в избранное">
+                            <i class="bi bi-heart fs-5"></i>
+                        </button>
+                    {% endif %}
                 </div>
-                {% if soundtrack.is_favorite %}
-                    <button class="btn btn-danger rounded-circle shadow" title="Убрать из избранного">
-                        <i class="bi bi-heart-fill fs-5"></i>
-                    </button>
-                {% else %}
-                    <button class="btn btn-outline-light rounded-circle shadow" title="Добавить в избранное">
-                        <i class="bi bi-heart fs-5"></i>
-                    </button>
-                {% endif %}
             </div>
         </div>
         {% endfor %}
