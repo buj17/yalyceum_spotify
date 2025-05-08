@@ -5,6 +5,22 @@ from ..models import User
 class UserManager:
     """Класс для управления пользователями в базе данных"""
     @staticmethod
+    def get_user_by_id(user_id: int) -> User:
+        """Получение пользователя по id
+
+        :param user_id: id пользователя
+        :type user_id: int
+        :raises ValueError: Если пользователя с данным user_id не существует
+        :return: Объект модели User
+        :rtype: User
+        """
+        with create_session() as db_session:
+            user_instance: User | None = db_session.get(User, user_id)
+            if user_instance is None:
+                raise ValueError(f'User not found with id: {user_id}')
+            return user_instance
+
+    @staticmethod
     def get_user_by_username(username: str) -> User:
         """Получение пользователя по имени
 
