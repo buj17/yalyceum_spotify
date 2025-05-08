@@ -10,24 +10,31 @@
     </div>
 
     <h4 class="mb-3">Мои плейлисты</h4>
-    {% if playlists %}
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
-        {% for playlist in playlists %}
-        <div class="col">
-            <div class="card bg-dark text-white h-100 border-0 shadow-sm position-relative overflow-hidden">
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title">{{ playlist.name }}</h5>
-                    {% if playlist.description %}
-                    <p class="card-text text-muted small">{{ playlist.description }}</p>
-                    {% endif %}
-                    <a href="/playlist/{{ playlist.id }}" class="btn btn-outline-light mt-auto">Открыть</a>
+    {% if soundtracks %}
+    <div class="container mb-5">
+        <h1 class="mb-4">Избранное</h1>
+
+        <h4 class="mb-3">Саундтреки</h4>
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+            {% for soundtrack in soundtracks %}
+            <div class="col">
+                <div class="card soundtrack-card bg-dark text-white h-100 border-0 shadow-sm position-relative overflow-hidden">
+                    <img src="{{ soundtrack.image }}" class="card-img-top" alt="Обложка {{ soundtrack.name }}">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ soundtrack.name }}</h5>
+                    </div>
+                    <div class="play-overlay position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center">
+                        <button class="btn btn-success rounded-circle shadow">
+                            <i class="bi bi-play-fill fs-4"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
+            {% endfor %}
         </div>
-        {% endfor %}
     </div>
     {% else %}
-        <p class="text-muted">У вас пока нет плейлистов.</p>
+        <p class="text-muted">В избранном пока нет треков.</p>
     {% endif %}
 </div>
 
