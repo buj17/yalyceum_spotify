@@ -101,6 +101,10 @@ class Music(Base):
         "MusicArtistAssociation",
         back_populates="music",
     )
+    favorited_by = sqlalchemy.orm.relationship(
+        "Favorite",
+        back_populates="music",
+    )
 
 
 class MusicArtistAssociation(Base):
@@ -148,6 +152,10 @@ class User(Base, UserMixin):
         sqlalchemy.Boolean,
         default=True,
     )
+    is_avatar = sqlalchemy.Column(
+        sqlalchemy.Boolean,
+        default=False,
+    )
 
     def set_password(self, password):
         self.password = generate_password_hash(password)
@@ -157,3 +165,31 @@ class User(Base, UserMixin):
 
     def __repr__(self):
         return f'<User {self.username}>'
+
+    favorites = sqlalchemy.orm.relationship(
+        "Favorite",
+        back_populates="user",
+    )
+
+
+class Favorite(Base):
+    __tablename__ = 'favorite'
+
+    id = sqlalchemy.Column(
+        sqlalchemy.Integer,
+        primary_key=True,
+        autoincrement=True,
+    )
+    user_id = sqlalchemy.Column(
+        sqlalchemy.Integer,
+        sqlalchemy.ForeignKey('users.id'),
+    )
+    music_id = sqlalchemy.Column(
+        sqlalchemy.Integer,
+        sqlalchemy.ForeignKey('musics.id'),
+    )
+    user = sqlalchemy.orm.relationship("User", back_populates="favorites")
+    music = sqlalchemy.orm.relationship("Music", back_populates="favorited_by")
+
+    def __repr__(self):
+        return f"{self.user_id} -> {self.music_id}"
