@@ -1,0 +1,91 @@
+.soundtrack-card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.soundtrack-card:hover {
+    transform: scale(1.03);
+    cursor: pointer;
+}
+
+.soundtrack-card:hover .play-overlay {
+    opacity: 1;
+}
+body {
+    background-color: #121212;
+    color: #e5e5e5;
+    font-family: 'Arial', sans-serif;
+}
+
+h1 {
+    font-size: 3rem;
+    color: #1DB954;
+}
+
+h4 {
+    font-size: 1.2rem;
+    color: #b3b3b3;
+}
+
+.navbar {
+    background-color: #1c1c1c;
+}
+
+.navbar a {
+    color: #e5e5e5;
+}
+
+.navbar a:hover {
+    color: #1DB954;
+}
+
+.container {
+    padding-top: 50px;
+}
+
+.footer {
+    background-color: #1c1c1c;
+    color: #b3b3b3;
+    text-align: center;
+    padding: 10px;
+    position: absolute;
+    width: 100%;
+    bottom: 0;
+}
+.card:hover {
+    transform: scale(1.03);
+    transition: transform 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+.play-overlay {
+    background: rgba(0, 0, 0, 0.4);
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.soundtrack-card:hover .play-overlay {
+    opacity: 1;
+}
+
+.favorite-btn {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.play-overlay {
+    background-color: rgba(0, 0, 0, 0.6);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.card:hover .play-overlay {
+    opacity: 1;
+}
+
+.card:hover {
+    transform: scale(1.03);
+    transition: transform 0.2s ease-in-out;
+    cursor: pointer;
+}

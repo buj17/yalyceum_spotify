@@ -33,6 +33,15 @@ class LoginForm(FlaskForm):
     submit = SubmitField('Войти')
 
 
+class Soundtrack:
+    def __init__(self, id, title, audio_url, cover_url, is_favorite=False):
+        self.id = id
+        self.title = title
+        self.audio_url = audio_url
+        self.cover_url = cover_url
+        self.is_favorite = is_favorite
+
+
 @login_manager.unauthorized_handler
 def redirect_to_login():
     return redirect('/login')
@@ -41,7 +50,11 @@ def redirect_to_login():
 @app.route('/')
 @login_required
 def home():
-    return render_template('home.html', user=current_user, title='Главная')
+    soundtracks = [
+        Soundtrack(1, "Трек 1", "/static/audio/track1.mp3", "/static/img/cover1.jpg", True),
+        Soundtrack(2, "Трек 2", "/static/audio/track2.mp3", "/static/img/cover2.jpg", False),
+    ]
+    return render_template('home.html', user=current_user, soundtracks=soundtracks, title='Главная')
 
 
 @app.route('/search', methods=['GET'])
@@ -49,26 +62,22 @@ def home():
 def search():
     query = request.args.get('q', '').strip()
     results = []
+    soundtracks = [
+        Soundtrack(1, "Трек 1", "/static/audio/track1.mp3", "/static/img/cover1.jpg", True),
+        Soundtrack(2, "Трек 2", "/static/audio/track2.mp3", "/static/img/cover2.jpg", False),
+    ]
 
-    if query:
-        mock_data = [
-            {'name': 'Imagine', 'artist': 'John Lennon', 'image': '/static/images/imagine.jpg'},
-            {'name': 'Bohemian Rhapsody', 'artist': 'Queen', 'image': '/static/images/bohemian.jpg'},
-            {'name': 'Shape of You', 'artist': 'Ed Sheeran', 'image': '/static/images/shape.jpg'},
-        ]
-
-        results = [
-            item for item in mock_data
-            if query.lower() in item['name'].lower() or query.lower() in item['artist'].lower()
-        ]
-
-    return render_template('search.html', user=current_user, query=query, results=results, title='Поиск')
+    return render_template('search.html', user=current_user, query=query, soundtracks=soundtracks, title='Поиск')
 
 
 @app.route('/account')
 @login_required
 def account():
-    return render_template('account.html', user=current_user, title='Аккаунт')
+    soundtracks = [
+        Soundtrack(1, "Трек 1", "/static/audio/track1.mp3", "/static/img/cover1.jpg", True),
+        Soundtrack(2, "Трек 2", "/static/audio/track2.mp3", "/static/img/cover2.jpg", False),
+    ]
+    return render_template('account.html', soundtracks=soundtracks, user=current_user, title='Аккаунт')
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -82,8 +91,9 @@ def register():
             return redirect('/')
         except sqlalchemy.exc.IntegrityError as error:
             print(error)
-            return render_template('register.html', massage='Уже существует пользователь с такой почтой или именем', form=form,
-                                    user=user, title='Регистрация')
+            return render_template('register.html', massage='Уже существует пользователь с такой почтой или именем',
+                                   form=form,
+                                   user=user, title='Регистрация')
     return render_template('register.html', user=current_user, title='Регистрация', form=form)
 
 

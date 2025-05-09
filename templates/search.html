@@ -11,21 +11,23 @@
         </div>
     </form>
 
-    {% if results %}
+    {% if soundtracks %}
     <h4 class="mb-3">Результаты поиска</h4>
     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
-        {% for soundtrack in results %}
+        {% for soundtrack in soundtracks %}
         <div class="col">
-            <div class="card bg-dark text-white h-100 border-0 shadow-sm position-relative overflow-hidden">
-                <img src="{{ soundtrack.image }}" class="card-img-top" alt="Обложка {{ soundtrack.name }}">
+            <div class="card soundtrack-card position-relative">
+                <img src="{{ soundtrack.cover_url }}" class="card-img-top" alt="{{ soundtrack.title }}">
+
                 <div class="card-body">
-                    <h5 class="card-title">{{ soundtrack.name }}</h5>
+                    <h5 class="card-title">{{ soundtrack.title }}</h5>
                     {% if soundtrack.artist %}
                     <p class="card-text text-muted small">{{ soundtrack.artist }}</p>
                     {% endif %}
                 </div>
+
                 <div class="play-overlay position-absolute top-0 start-0 w-100 h-100 d-flex flex-column justify-content-center align-items-center gap-3">
-                    <button class="btn btn-success rounded-circle shadow" title="Проиграть">
+                    <button class="btn btn-success rounded-circle shadow play-btn" data-audio-id="audio-{{ soundtrack.id }}" title="Воспроизвести">
                         <i class="bi bi-play-fill fs-4"></i>
                     </button>
 
@@ -34,11 +36,14 @@
                             <i class="bi bi-heart-fill fs-5"></i>
                         </button>
                     {% else %}
-                        <button class="btn btn-outline-light rounded-circle shadow favorite-btn" title="Добавить в избранное">
+                        <button class="btn btn-outline-light rounded-circle shadow favorite-btn"
+                                title="Добавить в избранное">
                             <i class="bi bi-heart fs-5"></i>
                         </button>
                     {% endif %}
                 </div>
+
+                <audio id="audio-{{ soundtrack.id }}" src="{{ soundtrack.audio_url }}"></audio>
             </div>
         </div>
         {% endfor %}
@@ -49,24 +54,6 @@
         <h5 class="text-muted">Начните вводить, чтобы найти треки или исполнителей.</h5>
     {% endif %}
 </div>
-
-<style>
-    .play-overlay {
-        background-color: rgba(0, 0, 0, 0.6);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
-
-    .card:hover .play-overlay {
-        opacity: 1;
-    }
-
-    .card:hover {
-        transform: scale(1.03);
-        transition: transform 0.2s ease-in-out;
-        cursor: pointer;
-    }
-</style>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 {% endblock %}
