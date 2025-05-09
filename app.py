@@ -52,7 +52,7 @@ def redirect_to_login():
 def home():
     soundtracks = [
         Soundtrack(1, "Трек 1", "/static/audio/track1.mp3", "/static/img/cover1.jpg", True),
-        Soundtrack(2, "Трек 2", "/static/audio/track2.mp3", "/static/img/cover2.jpg", False),
+        Soundtrack(2, "Трек 2", "/static/audio/track2.mp3", "/static/img/cover2.jpg", False)
     ]
     return render_template('home.html', user=current_user, soundtracks=soundtracks, title='Главная')
 
@@ -64,7 +64,7 @@ def search():
     results = []
     soundtracks = [
         Soundtrack(1, "Трек 1", "/static/audio/track1.mp3", "/static/img/cover1.jpg", True),
-        Soundtrack(2, "Трек 2", "/static/audio/track2.mp3", "/static/img/cover2.jpg", False),
+        Soundtrack(2, "Трек 2", "/static/audio/track2.mp3", "/static/img/cover2.jpg", False)
     ]
 
     return render_template('search.html', user=current_user, query=query, soundtracks=soundtracks, title='Поиск')
@@ -74,8 +74,7 @@ def search():
 @login_required
 def account():
     soundtracks = [
-        Soundtrack(1, "Трек 1", "/static/audio/track1.mp3", "/static/img/cover1.jpg", True),
-        Soundtrack(2, "Трек 2", "/static/audio/track2.mp3", "/static/img/cover2.jpg", False),
+        Soundtrack(1, "Трек 1", "/static/audio/track1.mp3", "/static/img/cover1.jpg", True)
     ]
     return render_template('account.html', soundtracks=soundtracks, user=current_user, title='Аккаунт')
 
