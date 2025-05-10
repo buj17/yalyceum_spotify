@@ -160,8 +160,7 @@ class User(Base, UserMixin):
     )
     username = sqlalchemy.Column(
         sqlalchemy.String(255),
-        nullable=False,
-        unique=True
+        nullable=False
     )
     email = sqlalchemy.Column(
         sqlalchemy.String(255),

@@ -1,6 +1,6 @@
 import sqlalchemy.orm
 import sqlalchemy_utils
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import Session
 
 from . import models
 from .db_config import settings
@@ -14,6 +14,7 @@ if not sqlalchemy_utils.database_exists(engine.url):
 models.Base.metadata.create_all(engine)
 
 SessionLocal = sqlalchemy.orm.sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 
 def create_session() -> Session:
     return SessionLocal()

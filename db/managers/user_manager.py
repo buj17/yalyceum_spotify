@@ -2,8 +2,13 @@ from ..connect import create_session
 from ..models import User
 
 
+class EmailAlreadyExistsError(Exception):
+    """Данная ошибка возникает в случае попытки добавить в базу данных уже существующий email"""
+
+
 class UserManager:
     """Класс для управления пользователями в базе данных"""
+
     @staticmethod
     def get_user_by_id(user_id: int) -> User:
         """Получение пользователя по id
@@ -21,22 +26,6 @@ class UserManager:
             return user_instance
 
     @staticmethod
-    def get_user_by_username(username: str) -> User:
-        """Получение пользователя по имени
-
-        :param username: Имя пользователя
-        :type username: str
-        :raises ValueError: Если пользователя с таким именем не существует
-        :return: Объект модели User
-        :rtype: User
-        """
-        with create_session() as db_session:
-            user_instance: User | None = db_session.query(User).filter(User.username == username).first()
-            if user_instance is None:
-                raise ValueError(f'User not found with username: {username}')
-            return user_instance
-
-    @staticmethod
     def get_user_by_email(email: str) -> User:
         """Получение пользователя по адресу эл. почты
 
@@ -46,23 +35,28 @@ class UserManager:
         :return: Объект модели User
         :rtype: User
         """
+
         with create_session() as db_session:
             user_instance: User | None = db_session.query(User).filter(User.email == email).first()
             if user_instance is None:
                 raise ValueError(f'User not found with email: {email}')
             return user_instance
 
-    @staticmethod
-    def add_user(user: User) -> None:
+    def add_user(self, user: User) -> None:
         """Добавление объекта модели User в базу данных
 
         :param user: Объект модели User
         :type user: User
+        :raises EmailAlreadyExistsError: Если пользователь с таким email уже существует
         """
+        if self._email_exists(user.email):
+            raise EmailAlreadyExistsError(f'Email already exists: {user.email}')
+
         with create_session() as db_session:
             try:
                 db_session.add(user)
                 db_session.commit()
+                db_session.refresh(user)
             except Exception:
                 db_session.rollback()
                 raise
@@ -96,3 +90,9 @@ class UserManager:
             except Exception:
                 db_session.rollback()
                 raise
+
+    @staticmethod
+    def _email_exists(email: str) -> bool:
+        with create_session() as db_session:
+            user_instance: User | None = db_session.query(User).filter(User.email == email).first()
+            return user_instance is not None
