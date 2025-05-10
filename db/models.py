@@ -187,6 +187,11 @@ class User(Base, UserMixin):
     def __repr__(self):
         return f'<User {self.username}>'
 
+    favorites = sqlalchemy.orm.relationship(
+        "Favorite",
+        back_populates="user",
+    )
+
 
 class Favorite(Base):
     __tablename__ = 'favorite'
