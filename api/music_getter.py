@@ -1,3 +1,4 @@
+from pathlib import Path
 from pprint import pprint
 from typing import List, Dict, Optional, Any
 import os
@@ -67,9 +68,11 @@ class ApiUtil:
             "songs": [self._process_song(s) for s in album.get("songs", [])]
         }
 
-    def download_song_data(self, album_data, save_dir="media"):
-        os.makedirs(save_dir, exist_ok=True)
-        song_dict = {}
+    def download_song_data(self, album_data):
+        path_to_download = Path(__file__).parent.parent / "media"
+        os.makedirs(path_to_download, exist_ok=True)
+        img_path_lst = []
+        audio_path_lst = []
 
         for song in album_data.get('songs', []):
             song_name = song['name']
@@ -80,13 +83,14 @@ class ApiUtil:
             img_path = None
             if img_url:
                 img_ext = os.path.splitext(img_url)[-1].split('?')[0]
-                img_path = os.path.join(save_dir, f"{song_key}_cover{img_ext}")
+                img_path = os.path.join(path_to_download, f"{song_key}_cover{img_ext}")
                 try:
                     with requests.get(img_url, stream=True) as r:
                         r.raise_for_status()
                         with open(img_path, 'wb') as f:
                             for chunk in r.iter_content(chunk_size=8192):
                                 f.write(chunk)
+                    img_path_lst.append(img_path)
                 except Exception as e:
                     print(f"Ошибка при скачивании изображения для {song_name}: {e}")
                     img_path = None
@@ -96,63 +100,58 @@ class ApiUtil:
             audio_path = None
             if music_url:
                 audio_ext = os.path.splitext(music_url)[-1].split('?')[0]
-                audio_path = os.path.join(save_dir, f"{song_key}_audio{audio_ext}")
+                audio_path = os.path.join(path_to_download, f"{song_key}_audio{audio_ext}")
                 try:
                     with requests.get(music_url, stream=True) as r:
                         r.raise_for_status()
                         with open(audio_path, 'wb') as f:
                             for chunk in r.iter_content(chunk_size=8192):
                                 f.write(chunk)
+                    audio_path_lst.append(audio_path)
                 except Exception as e:
                     print(f"Ошибка при скачивании аудио для {song_name}: {e}")
                     audio_path = None
 
-            song_dict[song_key] = {
-                "image_path": img_path,
-                "audio_path": audio_path,
-                "language": song.get("language"),
-                "duration": song.get("duration"),
-                "year": song.get("year"),
-                "artists": [artist.get("name") for artist in song.get("artists", [])],
-            }
+        return {"img_path_lst": img_path_lst, "audio_path_lst": audio_path_lst}
 
-        return song_dict
-
-    def download_file(self, url, filename, save_dir="media"):
-        os.makedirs(save_dir, exist_ok=True)
-        path = os.path.join(save_dir, filename)
-
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-        }
-
-        try:
-            print(f"Скачиваем: {url}")
-            response = requests.get(url, stream=True, headers=headers)
-            print(f"Статус: {response.status_code}")
-            response.raise_for_status()
-
-            total_written = 0
-            with open(path, 'wb') as f:
-                for chunk in response.iter_content(8192):
-                    if chunk:
-                        f.write(chunk)
-                        total_written += len(chunk)
-
-            print(f"Файл сохранён: {path}, размер: {total_written} байт")
-            return path
-
-        except Exception as e:
-            print(f"Ошибка при скачивании: {e}")
-            return None
+    # def download_file(self, url, filename):
+    #     path_to_download = Path(__file__).parent.parent / "media"
+    #     os.makedirs(path_to_download, exist_ok=True)
+    #     path = os.path.join(path_to_download, filename) + ".mp3"
+    #
+    #     headers = {
+    #         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+    #     }
+    #
+    #     try:
+    #         print(f"Скачиваем: {url}")
+    #         response = requests.get(url, stream=True, headers=headers)
+    #         print(f"Статус: {response.status_code}")
+    #         response.raise_for_status()
+    #
+    #         total_written = 0
+    #         with open(path, 'wb') as f:
+    #             for chunk in response.iter_content(8192):
+    #                 if chunk:
+    #                     f.write(chunk)
+    #                     total_written += len(chunk)
+    #
+    #         print(f"Файл сохранён: {path}, размер: {total_written} байт")
+    #         return path
+    #
+    #     except Exception as e:
+    #         print(f"Ошибка при скачивании: {e}")
+    #         return None
 
 
-if __name__ == "__main__":
-    api_util = ApiUtil()
-    album_ids = api_util.get_album_ids_by_category("love", limit=169)
-    if album_ids:
-        zxc = api_util.get_album_info(album_ids[0])
-        api_util.download_file(zxc['songs'][0]['music_url'], filename=zxc['name'])
-        pprint(zxc)
-
-
+# if __name__ == "__main__":
+    # api_util = ApiUtil()
+    # album_ids = api_util.get_album_ids_by_category("love", limit=1)
+    # if album_ids:
+    #     for album_id in album_ids:
+    #         album_info = api_util.get_album_info(album_id)
+    #         res_of_download = api_util.download_song_data(album_info)
+    #         img_path_lst = res_of_download["img_path_lst"]
+    #         audio_path_lst = res_of_download["audio_path_lst"]
+    #         print(img_path_lst, audio_path_lst)
+    #

@@ -13,8 +13,7 @@ if not sqlalchemy_utils.database_exists(engine.url):
 
 models.Base.metadata.create_all(engine)
 
-SessionLocal: sessionmaker[Session] = sqlalchemy.orm.sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
+SessionLocal = sqlalchemy.orm.sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def create_session() -> Session:
     return SessionLocal()

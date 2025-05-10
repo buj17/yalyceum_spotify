@@ -1,8 +1,6 @@
-from db.managers.user_manager import UserManager
-from db.models import User
+from db import create_session
+from sqlalchemy import text
 
-manager = UserManager()
-user = manager.get_user_by_username('user')
-manager.delete_user(user)
-
+session = create_session()
+print(session.execute(text('SHOW TABLES')).fetchall())
 
