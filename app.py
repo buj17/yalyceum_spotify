@@ -1,12 +1,9 @@
-import sqlalchemy
-from flask import Flask, render_template, request, redirect, url_for, session, redirect
-from flask_login import LoginManager, login_user, current_user, logout_user, UserMixin, login_required
-from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, IntegerField, SubmitField
-from wtforms.validators import DataRequired, Email, EqualTo
+from flask import Flask, render_template, request, url_for, redirect
+from flask_login import LoginManager, login_user, current_user, logout_user, login_required
 
 from db.managers.user_manager import UserManager, EmailAlreadyExistsError
 from db.models import User
+from forms import LoginForm, RegistrationForm
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '<KEY>'
@@ -79,20 +76,6 @@ def load_user(user_id: int) -> User | None:
     return manager.get_user_by_id(user_id)
 
 
-class RegisterForm(FlaskForm):
-    username = StringField('Имя', validators=[DataRequired()])
-    email = StringField('Почта', validators=[DataRequired(), Email()])
-    password = PasswordField('Пароль', validators=[DataRequired()])
-    confirm = PasswordField('Повторите пароль', validators=[DataRequired(), EqualTo('password')])
-    submit = SubmitField('Зарегистрироваться')
-
-
-class LoginForm(FlaskForm):
-    email = StringField('Почта', validators=[DataRequired(), Email()])
-    password = PasswordField('Пароль', validators=[DataRequired()])
-    submit = SubmitField('Войти')
-
-
 class Soundtrack:
     def __init__(self, id, title, audio_url, cover_url, is_favorite=False):
         self.id = id
@@ -103,9 +86,9 @@ class Soundtrack:
 
 
 soundtracks = [
-Soundtrack(1, "Трек 1", "/static/audio/Bangu Aaku Thechi_audio.mp4", "/static/audio/Bangu Aaku Thechi_cover.jpg"),
-Soundtrack(2, "Трек 2", "/static/audio/Pilla Padesaave_audio.mp4", "/static/audio/Pilla Padesaave_cover.jpg"),
-Soundtrack(2, "Трек 3", "/static/audio/Pranam Pothunna_audio.mp4", "/static/audio/Pranam Pothunna_cover.jpg")
+    Soundtrack(1, "Трек 1", "/static/audio/Bangu Aaku Thechi_audio.mp4", "/static/audio/Bangu Aaku Thechi_cover.jpg"),
+    Soundtrack(2, "Трек 2", "/static/audio/Pilla Padesaave_audio.mp4", "/static/audio/Pilla Padesaave_cover.jpg"),
+    Soundtrack(2, "Трек 3", "/static/audio/Pranam Pothunna_audio.mp4", "/static/audio/Pranam Pothunna_cover.jpg")
 ]
 
 
@@ -139,7 +122,7 @@ def account():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    form = RegisterForm()
+    form = RegistrationForm()
     if form.validate_on_submit():
         user = User(username=form.username.data, email=form.email.data, password=form.password.data)
         try:

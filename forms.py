@@ -1,6 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
-from wtforms.validators import DataRequired, EqualTo
+from wtforms.validators import EqualTo
+
 
 class RegistrationForm(FlaskForm):
     username = StringField('Username')
@@ -10,6 +11,7 @@ class RegistrationForm(FlaskForm):
         EqualTo('password', message="Passwords must match")
     ])
     submit = SubmitField('Register')
+
 
 class LoginForm(FlaskForm):
     username = StringField('Username')
