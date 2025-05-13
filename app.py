@@ -13,6 +13,54 @@ app.config['SECRET_KEY'] = '<KEY>'
 manager = UserManager()
 login_manager = LoginManager(app)
 
+import os
+from werkzeug.utils import secure_filename
+from flask import send_from_directory
+
+# Добавим конфигурацию для загрузки файлов
+UPLOAD_FOLDER = 'static/uploads/avatars'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024  # 2MB max
+
+# Создаем папку для загрузок, если ее нет
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+
+def allowed_file(filename):
+    return '.' in filename and \
+        filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+@app.route('/update_avatar', methods=['POST'])
+@login_required
+def update_avatar():
+    if 'avatar' not in request.files:
+        return {'success': False, 'message': 'Файл не выбран'}, 400
+
+    file = request.files['avatar']
+    if file.filename == '':
+        return {'success': False, 'message': 'Файл не выбран'}, 400
+
+    if file and allowed_file(file.filename):
+        # Генерируем уникальное имя файла
+        filename = f"user_{current_user.id}_{secure_filename(file.filename)}"
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+
+        # Обновляем путь к аватару в базе данных
+        avatar_url = f"/static/uploads/avatars/{filename}"
+        manager.update_user_avatar(current_user.id, avatar_url)
+
+        return {'success': True, 'avatar_url': avatar_url}
+
+    return {'success': False, 'message': 'Недопустимый формат файла'}, 400
+
+
+@app.route('/static/uploads/avatars/<filename>')
+def uploaded_avatar(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
 
 @login_manager.user_loader
 def load_user(user_id: int) -> User | None:

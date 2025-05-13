@@ -1,0 +1,24 @@
+.card:hover {
+        transform: scale(1.03);
+        transition: transform 0.2s ease-in-out;
+        cursor: pointer;
+    }
+    .avatar-overlay {
+    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    cursor: pointer;
+}
+
+.avatar-overlay:hover {
+    opacity: 1;
+}
+
+.change-avatar-btn {
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+.change-avatar-btn:hover {
+    opacity: 1;
+}
