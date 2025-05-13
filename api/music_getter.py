@@ -28,7 +28,8 @@ class ApiUtil:
         data = self._make_request(self.URL_FOR_ALBUMS, params)
         return [album["id"] for album in data.get("data", {}).get("results", [])] if data else None
 
-    def _extract_image_url(self, images: List[Dict]) -> Optional[str]:
+    @staticmethod
+    def _extract_image_url(images: List[Dict]) -> Optional[str]:
         """Извлекает URL последнего изображения из списка."""
         return images[-1]["url"] if images else None
 
@@ -68,7 +69,7 @@ class ApiUtil:
             "songs": [self._process_song(s) for s in album.get("songs", [])]
         }
 
-    def download_song_data(self, album_data):
+    def download_song_data(self, album_data: dict) -> dict[str, list[str]]:
         path_to_download = Path(__file__).parent.parent / "media"
         os.makedirs(path_to_download, exist_ok=True)
         img_path_lst = []

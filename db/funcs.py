@@ -3,8 +3,8 @@ from datetime import datetime
 from io import BytesIO
 from typing import Optional
 
-from . import connect, models, s3manager
 from api.music_getter import ApiUtil
+from . import connect, models, s3manager
 
 
 def get_user_by_username(username):
@@ -19,6 +19,7 @@ def get_user_by_username(username):
     finally:
         db.close()
 
+
 def get_user_by_email(email):
     db = connect.SessionLocal()
     try:
@@ -31,6 +32,7 @@ def get_user_by_email(email):
     finally:
         db.close()
 
+
 def get_user_by_id(id):
     db = connect.SessionLocal()
     try:
@@ -41,6 +43,7 @@ def get_user_by_id(id):
         print(f"Ошибка в get_user_by_id, {e}")
     finally:
         db.close()
+
 
 def create_user(email, username, password):
     db = connect.SessionLocal()
@@ -68,7 +71,6 @@ def get_music_by_id(id):
         db.close()
 
 
-
 def add_to_favorite_music(user, music):
     db = connect.SessionLocal()
     try:
@@ -80,6 +82,7 @@ def add_to_favorite_music(user, music):
         print(f"Ошибка в add_to_favorite_music, {e}")
     finally:
         db.close()
+
 
 def get_avatar_from_user(user: models.User) -> None:
     db = connect.SessionLocal()
@@ -137,7 +140,7 @@ def upload_user_avatar(user: models.User, avatar_file) -> Optional[bool]:
         db.close()
 
 
-def download_music_cover_and_push_into_s3_and_db(category, limit=1):
+def download_music_cover_and_push_into_s3_and_db(category: str, limit=1):
     db = connect.SessionLocal()
     try:
         api_util = ApiUtil()
@@ -146,42 +149,32 @@ def download_music_cover_and_push_into_s3_and_db(category, limit=1):
             for album_id in album_ids:
                 album_info = api_util.get_album_info(album_id)  # инфа об альбоме
                 res_of_download = api_util.download_song_data(album_info)  # загружаем треки
-                img_path_lst = res_of_download["img_path_lst"]  #  список со ссылками на картинки
-                audio_path_lst = res_of_download["audio_path_lst"]  #  список со ссылками на треки
+                img_path_lst = res_of_download["img_path_lst"]  # список со ссылками на картинки
+                audio_path_lst = res_of_download["audio_path_lst"]  # список со ссылками на треки
+
+                # print(img_path_lst)
+                # print(audio_path_lst)
+                # pprint.pprint(album_info)
 
                 manager = s3manager.S3Manager()
 
-                # Создаем альбом в БД
-                album = models.Album(
-                    id=album_id,
-                    name=album_info.get('name', 'Unknown Album'),
-                    description=album_info.get('description', ''),
-                    year=album_info.get('year', datetime.now().year)
-                )
-                db.add(album)
+                album = db.query(models.Album).filter(
+                    models.Album.name == album_info.get('name', 'Unknown Album')
+                ).first()
+                if album is None:
+                    # Создаем альбом в БД
+                    album = models.Album(
+                        name=album_info.get('name', 'Unknown Album'),
+                        description=album_info.get('description', ''),
+                        year=album_info.get('year', datetime.now().year)
+                    )
+                    db.add(album)
+                    db.flush()
+                    db.refresh(album)
 
                 for img_path, audio_path in zip(img_path_lst, audio_path_lst):
-                    # Загружаем изображение в S3
                     img_name = os.path.basename(img_path)
-                    try:
-                        manager.get_file(img_name)
-                    except ValueError:
-                        continue
-                    with open(img_path, 'rb') as file:
-                        img_bytes = file.read()
-                        img_bytes_io = BytesIO(img_bytes)
-                    manager.upload_file(img_name, img_bytes_io)
-
-                    # Загружаем аудио в S3
                     audio_name = os.path.basename(audio_path)
-                    try:
-                        manager.get_file(audio_name)
-                    except ValueError:
-                        continue
-                    with open(audio_path, 'rb') as file:
-                        audio_bytes = file.read()
-                        audio_bytes_io = BytesIO(audio_bytes)
-                    manager.upload_file(audio_name, audio_bytes_io)
 
                     # Получаем информацию о песне
                     song_info = next((s for s in album_info['songs']
@@ -212,18 +205,41 @@ def download_music_cover_and_push_into_s3_and_db(category, limit=1):
                                                    datetime.now().year),
                         duration=song_info.get('duration', 0),
                         language=song_info.get('language', 'Unknown'),
-                        album_id=album_id
+                        album_id=album.id
                     )
                     db.add(music)
                     db.flush()
+                    db.refresh(music)
 
                     # Создаем связи между музыкой и артистами
                     for artist in artists:
-                        association = models.MusicArtistAssociation(
-                            music_id=music.id,
-                            artist_id=artist.id
-                        )
-                        db.add(association)
+                        association = db.get(models.MusicArtistAssociation, (music.id, artist.id))
+
+                        if association is None:
+                            association = models.MusicArtistAssociation(
+                                music_id=music.id,
+                                artist_id=artist.id
+                            )
+                            db.add(association)
+                            db.flush()
+
+                    # Загружаем изображение в S3
+                    print(img_name)
+                    with open(img_path, 'rb') as file:
+                        img_bytes = file.read()
+                        img_bytes_io = BytesIO(img_bytes)
+                    img_root, img_extension = os.path.splitext(img_name)
+                    manager.upload_file(f'music_image_{music.id}{img_extension}', img_bytes_io, force=True)
+
+                    # Загружаем аудио в S3
+                    with open(audio_path, 'rb') as file:
+                        audio_bytes = file.read()
+                        audio_bytes_io = BytesIO(audio_bytes)
+                    audio_root, audio_extension = os.path.splitext(audio_name)
+                    manager.upload_file(f'music_audio_{music.id}{audio_extension}', audio_bytes_io, force=True)
+
+                    print(f'music_image_{music.id}{img_extension}')
+                    print(f'music_audio_{music.id}{audio_extension}')
 
                 db.commit()
                 print(f"Успешно сохранен альбом: {album.name}")
