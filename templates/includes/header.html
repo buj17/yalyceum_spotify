@@ -1,0 +1,13 @@
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">MELODIA</a>
+        {% if current_user.is_authenticated %}
+            <div class="d-flex">
+                    <span class="navbar-text me-3">
+                        {{ user.username }}
+                    </span>
+                <a href="/logout" class="btn btn-outline-light">Log Out</a>
+            </div>
+        {% endif %}
+    </div>
+</nav>
