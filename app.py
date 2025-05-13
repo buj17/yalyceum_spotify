@@ -5,7 +5,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, IntegerField, SubmitField
 from wtforms.validators import DataRequired, Email, EqualTo
 
-from db.managers.user_manager import UserManager
+from db.managers.user_manager import UserManager, EmailAlreadyExistsError
 from db.models import User
 
 app = Flask(__name__)
@@ -62,6 +62,18 @@ def uploaded_avatar(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 
+class Favourites:
+    def __init__(self, user_id, favourites):
+        self.user_id = user_id
+        self.favourites = favourites
+
+    def get_favourites(self):
+        return self.favourites
+
+
+not_favourites = Favourites(5, '1')
+
+
 @login_manager.user_loader
 def load_user(user_id: int) -> User | None:
     return manager.get_user_by_id(user_id)
@@ -90,6 +102,13 @@ class Soundtrack:
         self.is_favorite = is_favorite
 
 
+soundtracks = [
+Soundtrack(1, "Трек 1", "/static/audio/Bangu Aaku Thechi_audio.mp4", "/static/audio/Bangu Aaku Thechi_cover.jpg"),
+Soundtrack(2, "Трек 2", "/static/audio/Pilla Padesaave_audio.mp4", "/static/audio/Pilla Padesaave_cover.jpg"),
+Soundtrack(2, "Трек 3", "/static/audio/Pranam Pothunna_audio.mp4", "/static/audio/Pranam Pothunna_cover.jpg")
+]
+
+
 @login_manager.unauthorized_handler
 def redirect_to_login():
     return redirect('/login')
@@ -98,22 +117,16 @@ def redirect_to_login():
 @app.route('/')
 @login_required
 def home():
-    soundtracks = [
-        Soundtrack(1, "Трек 1", "/static/audio/track1.mp3", "/static/img/cover1.jpg", True),
-        Soundtrack(2, "Трек 2", "/static/audio/track2.mp3", "/static/img/cover2.jpg", False)
-    ]
-    return render_template('home.html', user=current_user, soundtracks=soundtracks, title='Главная')
+    return render_template('home.html', user=current_user, soundtracks=soundtracks, title='Главная',
+                           favourites=not_favourites.get_favourites().split(', '))
 
 
 @app.route('/search', methods=['GET'])
 @login_required
 def search():
     query = request.args.get('q', '').strip()
-    results = []
-    soundtracks = [
-        Soundtrack(1, "Трек 1", "/static/audio/track1.mp3", "/static/img/cover1.jpg", True),
-        Soundtrack(2, "Трек 2", "/static/audio/track2.mp3", "/static/img/cover2.jpg", False)
-    ]
+    """music_manager = 1
+    soundtracks = music_manager.search(query)"""
 
     return render_template('search.html', user=current_user, query=query, soundtracks=soundtracks, title='Поиск')
 
@@ -121,9 +134,6 @@ def search():
 @app.route('/account')
 @login_required
 def account():
-    soundtracks = [
-        Soundtrack(1, "Трек 1", "/static/audio/track1.mp3", "/static/img/cover1.jpg", True)
-    ]
     return render_template('account.html', soundtracks=soundtracks, user=current_user, title='Аккаунт')
 
 
@@ -134,10 +144,9 @@ def register():
         user = User(username=form.username.data, email=form.email.data, password=form.password.data)
         try:
             manager.add_user(user)
-            login_user(manager.get_user_by_email(user.email))
+            login_user(user)
             return redirect('/')
-        except sqlalchemy.exc.IntegrityError as error:
-            print(error)
+        except EmailAlreadyExistsError:
             return render_template('register.html', massage='Уже существует пользователь с такой почтой или именем',
                                    form=form,
                                    user=user, title='Регистрация')
@@ -154,10 +163,23 @@ def login():
                 raise ValueError
             login_user(user)
             return redirect('/')
-        except ValueError as e:
+        except ValueError:
             return render_template('login.html', massage='Неверная почта или пароль', user=current_user, title='Войти',
                                    form=form)
     return render_template('login.html', user=current_user, title='Войти', form=form)
+
+
+@app.route('/toggle_favorite/<int:track_id>', methods=['POST'])
+@login_required
+def toggle_favorite(track_id):
+    favourites = not_favourites.get_favourites().split(', ')
+    if track_id not in favourites:
+        favourites.append(track_id)
+    else:
+        favourites.pop(track_id)
+    not_favourites.favourites = favourites
+    print(favourites)
+    return '', 204
 
 
 @app.route('/logout', methods=['GET', 'POST'])
