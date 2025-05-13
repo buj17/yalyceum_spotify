@@ -88,7 +88,7 @@ class Soundtrack:
 soundtracks = [
     Soundtrack(1, "Трек 1", "/static/audio/Bangu Aaku Thechi_audio.mp4", "/static/audio/Bangu Aaku Thechi_cover.jpg"),
     Soundtrack(2, "Трек 2", "/static/audio/Pilla Padesaave_audio.mp4", "/static/audio/Pilla Padesaave_cover.jpg"),
-    Soundtrack(2, "Трек 3", "/static/audio/Pranam Pothunna_audio.mp4", "/static/audio/Pranam Pothunna_cover.jpg")
+    Soundtrack(3, "Трек 3", "/static/audio/Pranam Pothunna_audio.mp4", "/static/audio/Pranam Pothunna_cover.jpg")
 ]
 
 
@@ -157,11 +157,10 @@ def login():
 def toggle_favorite(track_id):
     favourites = not_favourites.get_favourites().split(', ')
     if track_id not in favourites:
-        favourites.append(track_id)
+        favourites.append(str(track_id))
     else:
         favourites.pop(track_id)
-    not_favourites.favourites = favourites
-    print(favourites)
+    not_favourites.favourites = ', '.join(favourites)
     return '', 204
 
 
