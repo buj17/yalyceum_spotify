@@ -4,9 +4,43 @@
 <div class="container mb-5">
     <h1 class="mb-4">Аккаунт</h1>
 
-    <div class="mb-5">
-        <h4>{{ user.name }}</h4>
-        <p class="text-muted">Email: {{ user.email }}</p>
+    <div class="mb-5 d-flex align-items-center">
+        <div class="position-relative me-3">
+            <img src="{{ user.avatar_url }}" class="rounded-circle" width="80" height="80" alt="Аватар" id="userAvatar">
+            <div class="avatar-overlay position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center rounded-circle">
+                <button class="btn btn-sm btn-dark change-avatar-btn" data-bs-toggle="modal" data-bs-target="#avatarModal">
+                    <i class="bi bi-camera"></i>
+                </button>
+            </div>
+        </div>
+        <div>
+            <h4>{{ user.username }}</h4>
+            <p class="text-muted">Email: {{ user.email }}</p>
+        </div>
+    </div>
+
+    <!-- Модальное окно для загрузки аватара -->
+    <div class="modal fade" id="avatarModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-light">
+                <div class="modal-header">
+                    <h5 class="modal-title">Сменить аватар</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="avatarForm" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="avatarInput" class="form-label">Выберите изображение (PNG, JPG, до 2MB)</label>
+                            <input class="form-control bg-secondary text-light" type="file" id="avatarInput" name="avatar" accept="image/*">
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Отмена</button>
+                            <button type="submit" class="btn btn-success">Сохранить</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 
     <h3 class="mb-3">Избранное</h3>
@@ -32,16 +66,9 @@
                                 <i class="bi bi-play-fill fs-4"></i>
                             </button>
 
-                            {% if soundtrack.is_favorite %}
-                                <button class="btn btn-danger rounded-circle shadow favorite-btn" title="Убрать из избранного">
-                                    <i class="bi bi-heart-fill fs-5"></i>
-                                </button>
-                            {% else %}
-                                <button class="btn btn-outline-light rounded-circle shadow favorite-btn"
-                                        title="Добавить в избранное">
-                                    <i class="bi bi-heart fs-5"></i>
-                                </button>
-                            {% endif %}
+                            <button class="btn btn-danger rounded-circle shadow favorite-btn" title="Убрать из избранного">
+                                <i class="bi bi-heart-fill fs-5"></i>
+                            </button>
                         </div>
 
                         <audio id="audio-{{ soundtrack.id }}" src="{{ soundtrack.audio_url }}"></audio>
@@ -55,13 +82,65 @@
     {% endif %}
 </div>
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-
 <style>
-    .card:hover {
-        transform: scale(1.03);
-        transition: transform 0.2s ease-in-out;
+    .avatar-overlay {
+        background-color: rgba(0, 0, 0, 0.5);
+        opacity: 0;
+        transition: opacity 0.3s ease;
         cursor: pointer;
     }
+
+    .avatar-overlay:hover {
+        opacity: 1;
+    }
+
+    .change-avatar-btn {
+        opacity: 0.8;
+        transition: opacity 0.3s ease;
+    }
+
+    .change-avatar-btn:hover {
+        opacity: 1;
+    }
 </style>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const avatarForm = document.getElementById('avatarForm');
+
+    if (avatarForm) {
+        avatarForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const fileInput = document.getElementById('avatarInput');
+            const file = fileInput.files[0];
+
+            if (file) {
+                const formData = new FormData();
+                formData.append('avatar', file);
+
+                fetch('/update_avatar', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Обновляем изображение на странице
+                        document.getElementById('userAvatar').src = data.avatar_url + '?' + new Date().getTime();
+                        // Закрываем модальное окно
+                        bootstrap.Modal.getInstance(document.getElementById('avatarModal')).hide();
+                    } else {
+                        alert('Ошибка при загрузке аватара: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Произошла ошибка при загрузке файла');
+                });
+            } else {
+                alert('Пожалуйста, выберите файл');
+            }
+        });
+    }
+});
+</script>
 {% endblock %}
