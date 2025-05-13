@@ -103,12 +103,21 @@ class S3Manager:
         bucket_objects_collection = s3_bucket.objects.all()
         return bucket_objects_collection
 
+    def get_file_url(self):
+        pass
+
     def _file_exists(self, filename: str):
         try:
             self.get_file(filename)
         except ValueError:
             return False
         return True
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self._s3_client.close()
 
 
 # if __name__ == '__main__':

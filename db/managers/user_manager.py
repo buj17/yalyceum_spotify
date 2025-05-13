@@ -1,5 +1,6 @@
 from ..connect import create_session
 from ..models import User
+from ..s3manager import S3Manager
 
 
 class EmailAlreadyExistsError(Exception):
@@ -96,3 +97,32 @@ class UserManager:
         with create_session() as db_session:
             user_instance: User | None = db_session.query(User).filter(User.email == email).first()
             return user_instance is not None
+
+    @staticmethod
+    def upload_avatar(user_id: int, content: bytes):
+        """
+
+        :param user_id:
+        :param content:
+        :return:
+        """
+
+        with (create_session() as db_session,
+              S3Manager() as s3_manager):
+            s3_manager.upload_file()
+
+    @staticmethod
+    def get_avatar_url(user_id: int) -> str:
+        pass
+
+    @staticmethod
+    def add_favorite_track(user_id: int, music_id: int):
+        pass
+
+    @staticmethod
+    def get_favorite_tracks(user_id: int):
+        pass
+
+    @staticmethod
+    def remove_favorite_track(user_id: int, music_id: int):
+        pass
