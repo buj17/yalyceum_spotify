@@ -1,18 +1,19 @@
+import os
+import secrets
+
 from flask import Flask, render_template, request, url_for, redirect
 from flask_login import LoginManager, login_user, current_user, logout_user, login_required
+from werkzeug.utils import secure_filename
+from flask import send_from_directory
 
 from db.managers.user_manager import UserManager, EmailAlreadyExistsError
 from db.models import User
 from forms import LoginForm, RegistrationForm
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = '<KEY>'
+app.config['SECRET_KEY'] = secrets.token_hex(64)
 manager = UserManager()
 login_manager = LoginManager(app)
-
-import os
-from werkzeug.utils import secure_filename
-from flask import send_from_directory
 
 # Добавим конфигурацию для загрузки файлов
 UPLOAD_FOLDER = 'static/uploads/avatars'
@@ -55,7 +56,7 @@ def update_avatar():
 
 
 @app.route('/static/uploads/avatars/<filename>')
-def uploaded_avatar(filename):
+def uploaded_avatar(filename: str):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 
@@ -154,7 +155,7 @@ def login():
 
 @app.route('/toggle_favorite/<int:track_id>', methods=['POST'])
 @login_required
-def toggle_favorite(track_id):
+def toggle_favorite(track_id: int):
     favourites = not_favourites.get_favourites().split(', ')
     if track_id not in favourites:
         favourites.append(str(track_id))
