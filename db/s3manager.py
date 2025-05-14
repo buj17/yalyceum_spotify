@@ -103,8 +103,36 @@ class S3Manager:
         bucket_objects_collection = s3_bucket.objects.all()
         return bucket_objects_collection
 
-    def get_file_url(self):
-        pass
+    def get_file_url(self, filename: str, content_type: str, content_disposition: str, expiration: int = 3600) -> str:
+        """Генерирует пре-подписанный url для файла из s3 хранилища
+
+        :param filename: Название файла
+        :type filename: str
+        :param content_type: Тип возвращаемого контента (audio/mp3, video/mp4, image/jpeg)
+        :type content_type: str
+        :param content_disposition: Значение Content-Disposition ('inline' или 'attachment')
+        :type content_disposition: str
+        :param expiration: Время действия url в секундах (по умолчанию 1 час)
+        :type expiration: int
+        :raises ValueError: Если файл с таким именем не существует
+        :return: Пре-подписанный url
+        :rtype: str
+        """
+        if not self._file_exists(filename):
+            raise ValueError(f'File not found: {filename}')
+
+        url = self._s3_client.generate_presigned_url(
+            'get_object',
+            Params={
+                'Bucket': BUCKET_NAME,
+                'Key': filename,
+                'ResponseContentType': content_type,
+                'ResponseContentDisposition': content_disposition
+            },
+            ExpiresIn=expiration
+        )
+
+        return url
 
     def _file_exists(self, filename: str):
         try:
