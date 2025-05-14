@@ -2,16 +2,11 @@
 
 {% block content %}
 <div class="container mb-5">
-    <h1 class="mb-4">Аккаунт</h1>
+  <h1 class="mb-4">Аккаунт</h1>
 
     <div class="mb-5 d-flex align-items-center">
         <div class="position-relative me-3">
-            <img src="{{ user.avatar_url }}" class="rounded-circle" width="80" height="80" alt="Аватар" id="userAvatar">
-            <div class="avatar-overlay position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center rounded-circle">
-                <button class="btn btn-sm btn-dark change-avatar-btn" data-bs-toggle="modal" data-bs-target="#avatarModal">
-                    <i class="bi bi-camera"></i>
-                </button>
-            </div>
+            <img src="{{ user_manager.get_avatar_url(user.id) }}" class="rounded-circle" width="80" height="80" alt="Аватар">
         </div>
         <div>
             <h4>{{ user.username }}</h4>
@@ -19,30 +14,20 @@
         </div>
     </div>
 
-    <!-- Модальное окно для загрузки аватара -->
-    <div class="modal fade" id="avatarModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content bg-dark text-light">
-                <div class="modal-header">
-                    <h5 class="modal-title">Сменить аватар</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="avatarForm" enctype="multipart/form-data">
-                        <div class="mb-3">
-                            <label for="avatarInput" class="form-label">Выберите изображение (PNG, JPG, до 2MB)</label>
-                            <input class="form-control bg-secondary text-light" type="file" id="avatarInput" name="avatar" accept="image/*">
-                        </div>
-                        <div class="d-flex justify-content-end">
-                            <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Отмена</button>
-                            <button type="submit" class="btn btn-success">Сохранить</button>
-                        </div>
-                    </form>
-                </div>
+    <!-- Форма для загрузки аватара -->
+    <div class="card mb-5">
+        <div class="card-body">
+        <h5 class="card-title">Сменить аватар</h5>
+        <form method="POST" action="{{ url_for('upload_avatar') }}" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="avatar" class="form-label">Выберите изображение (PNG, JPG, до 2MB)</label>
+                <input class="form-control" type="file" id="avatar" name="avatar" accept="image/*" required>
             </div>
-        </div>
+            <button type="submit" class="btn btn-primary">Загрузить</button>
+        </form>
     </div>
 
+    </div>
     <h3 class="mb-3">Избранное</h3>
     {% if soundtracks %}
     <div class="container mb-5">
@@ -72,10 +57,17 @@
                         </div>
 
                         <audio id="audio-{{ soundtrack.id }}" src="{{ music_manager.get_music_audio_url(soundtrack.id) }}"></audio>
+
                     </div>
+
                 </div>
             {% endfor %}
         </div>
+                                <div class="volume-control">
+    <i class="bi bi-volume-down volume-icon"></i>
+    <input type="range" class="volume-slider" min="0" max="1" step="0.01" value="0.5">
+    <i class="bi bi-volume-up volume-icon"></i>
+  </div>
     </div>
     {% else %}
         <p class="text-muted">В избранном пока нет треков.</p>
@@ -85,40 +77,86 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const avatarForm = document.getElementById('avatarForm');
+    const avatarInput = document.getElementById('avatarInput');
+    const avatarError = document.getElementById('avatarError');
+    const submitBtn = document.getElementById('submitBtn');
 
     if (avatarForm) {
-        avatarForm.addEventListener('submit', function(e) {
+        avatarForm.addEventListener('submit', async function(e) {
             e.preventDefault();
-            const fileInput = document.getElementById('avatarInput');
-            const file = fileInput.files[0];
 
-            if (file) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Загрузка...';
+
+            const file = avatarInput.files[0];
+
+            try {
                 const formData = new FormData();
                 formData.append('avatar', file);
 
-                fetch('/update_avatar', {
+                const response = await fetch('/update_avatar', {
                     method: 'POST',
                     body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Обновляем изображение на странице
-                        document.getElementById('userAvatar').src = data.avatar_url + '?' + new Date().getTime();
-                        // Закрываем модальное окно
-                        bootstrap.Modal.getInstance(document.getElementById('avatarModal')).hide();
-                    } else {
-                        alert('Ошибка при загрузке аватара: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Произошла ошибка при загрузке файла');
                 });
-            } else {
-                alert('Пожалуйста, выберите файл');
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Обновляем изображение на странице с параметром времени, чтобы избежать кеширования
+                    document.getElementById('userAvatar').src = data.avatar_url + '?' + new Date().getTime();
+
+                    // Закрываем модальное окно
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('avatarModal'));
+                    modal.hide();
+
+                    // Показываем уведомление об успехе
+                    showToast('Аватар успешно обновлен', 'success');
+                } else {
+                    avatarError.textContent = data.message;
+                    avatarInput.classList.add('is-invalid');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                avatarError.textContent = 'Произошла ошибка при загрузке файла';
+                avatarInput.classList.add('is-invalid');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Сохранить';
             }
         });
+
+        // Сброс ошибок при повторном открытии модального окна
+        document.getElementById('avatarModal').addEventListener('show.bs.modal', function() {
+            avatarInput.classList.remove('is-invalid');
+            avatarError.textContent = '';
+            avatarForm.reset();
+        });
+    }
+
+    // Функция для показа уведомлений
+    function showToast(message, type = 'success') {
+        const toastContainer = document.createElement('div');
+        toastContainer.innerHTML = `
+            <div class="toast align-items-center text-white bg-${type} border-0 show" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        `;
+        toastContainer.style.position = 'fixed';
+        toastContainer.style.top = '20px';
+        toastContainer.style.right = '20px';
+        toastContainer.style.zIndex = '1100';
+
+        document.body.appendChild(toastContainer);
+
+        // Автоматическое скрытие через 5 секунд
+        setTimeout(() => {
+            toastContainer.remove();
+        }, 5000);
     }
 });
 </script>
