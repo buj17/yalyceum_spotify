@@ -2,9 +2,9 @@ import os
 import secrets
 
 from flask import Flask, render_template, request, url_for, redirect
+from flask import send_from_directory
 from flask_login import LoginManager, login_user, current_user, logout_user, login_required
 from werkzeug.utils import secure_filename
-from flask import send_from_directory
 
 from db.connect import create_session
 from db.managers.music_manager import MusicManager
