@@ -3,7 +3,7 @@ from io import BytesIO
 from PIL import Image
 
 from ..connect import create_session
-from ..models import User
+from ..models import User, Favorite, Music
 from ..s3manager import S3Manager
 
 
@@ -140,15 +140,55 @@ class UserManager:
 
     @staticmethod
     def add_favorite_track(user_id: int, music_id: int):
-        pass
+        """Добавляет трек для пользователя в избранное
+
+        :param user_id: id пользователя
+        :type user_id: int
+        :param music_id: id трека
+        :type music_id: int
+        :raises ValueError: Если трек уже в избранных
+        """
+        with create_session() as db_session:
+            favorite_instance: Favorite | None = db_session.get(Favorite, (user_id, music_id))
+            if favorite_instance is not None:
+                raise ValueError('Favorite instance already exists')
+
+            favorite = Favorite(user_id=user_id, music_id=music_id)
+            db_session.add(favorite)
+            db_session.commit()
 
     @staticmethod
-    def get_favorite_tracks(user_id: int):
-        pass
+    def get_favorite_tracks(user_id: int) -> list[Music]:
+        """Возвращает список избранных треков пользователя
+
+        :param user_id: id пользователя
+        :type user_id: int
+        :return: Список объектов модели Music
+        :rtype: list[Music]
+        """
+        with create_session() as db_session:
+            user_instance: User | None = db_session.get(User, user_id)
+            if user_instance is None:
+                raise ValueError(f'User does not exist with id: {user_id}')
+            return list(map(lambda favorite: favorite.music, user_instance.favorites))
 
     @staticmethod
     def remove_favorite_track(user_id: int, music_id: int):
-        pass
+        """Удаляет трек из избранных
+
+        :param user_id: id пользователя
+        :type user_id: int
+        :param music_id: id трека
+        :type music_id: int
+        :raises ValueError: Если трека нет в избранных
+        """
+        with create_session() as db_session:
+            favorite_instance: Favorite | None = db_session.get(Favorite, (user_id, music_id))
+            if favorite_instance is None:
+                raise ValueError('Favorite instance does not exist')
+
+            db_session.delete(favorite_instance)
+            db_session.commit()
 
 
 def _convert_image_bytes_to_jpeg(image_bytes: bytes) -> BytesIO:
