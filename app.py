@@ -12,7 +12,7 @@ from forms import LoginForm, RegistrationForm
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = secrets.token_hex(64)
-manager = UserManager()
+user_manager = UserManager()
 login_manager = LoginManager(app)
 
 # Добавим конфигурацию для загрузки файлов
@@ -48,7 +48,7 @@ def update_avatar():
 
         # Обновляем путь к аватару в базе данных
         avatar_url = f"/static/uploads/avatars/{filename}"
-        manager.update_user_avatar(current_user.id, avatar_url)
+        user_manager.update_user_avatar(current_user.id, avatar_url)
 
         return {'success': True, 'avatar_url': avatar_url}
 
@@ -74,7 +74,7 @@ not_favourites = Favourites(5, '1')
 
 @login_manager.user_loader
 def load_user(user_id: int) -> User | None:
-    return manager.get_user_by_id(user_id)
+    return user_manager.get_user_by_id(user_id)
 
 
 class Soundtrack:
@@ -127,7 +127,7 @@ def register():
     if form.validate_on_submit():
         user = User(username=form.username.data, email=form.email.data, password=form.password.data)
         try:
-            manager.add_user(user)
+            user_manager.add_user(user)
             login_user(user)
             return redirect('/')
         except EmailAlreadyExistsError:
@@ -142,7 +142,7 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         try:
-            user = manager.get_user_by_email(form.email.data)
+            user = user_manager.get_user_by_email(form.email.data)
             if not user.check_password(form.password.data):
                 raise ValueError
             login_user(user)
@@ -156,12 +156,10 @@ def login():
 @app.route('/toggle_favorite/<int:track_id>', methods=['POST'])
 @login_required
 def toggle_favorite(track_id: int):
-    favourites = not_favourites.get_favourites().split(', ')
-    if track_id not in favourites:
-        favourites.append(str(track_id))
+    if user_manager.is_track_favourite(current_user.id, track_id):
+        user_manager.add_favorite_track(current_user.id, track_id)
     else:
-        favourites.pop(track_id)
-    not_favourites.favourites = ', '.join(favourites)
+        user_manager.remove_favorite_track(current_user.id, track_id)
     return '', 204
 
 

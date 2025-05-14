@@ -24,7 +24,7 @@
                                 <i class="bi bi-play-fill fs-4"></i>
                             </button>
 
-                            {% if soundtrack.id in favourite %}
+                            {% if manager.is_track_favourite(user.id, soundtrack.id) %}
                                 <button class="btn btn-danger rounded-circle shadow favorite-btn"
                                         data-audio-id="audio-{{ soundtrack.id }}" title="Убрать из избранного">
                                     <i class="bi bi-heart-fill fs-5"></i>
