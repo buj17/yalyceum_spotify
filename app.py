@@ -60,16 +60,6 @@ def uploaded_avatar(filename: str):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 
-class Favourites:
-    def __init__(self, user_id, favourites):
-        self.user_id = user_id
-        self.favourites = favourites
-
-    def get_favourites(self):
-        return self.favourites
-
-
-not_favourites = Favourites(5, '1')
 
 
 @login_manager.user_loader
@@ -87,7 +77,7 @@ class Soundtrack:
 
 
 soundtracks = [
-    Soundtrack(1, "Трек 1", "/static/audio/Bangu Aaku Thechi_audio.mp4", "/static/audio/Bangu Aaku Thechi_cover.jpg"),
+    Soundtrack(91, "Трек 1", "/static/audio/Bangu Aaku Thechi_audio.mp4", "/static/audio/Bangu Aaku Thechi_cover.jpg"),
     Soundtrack(2, "Трек 2", "/static/audio/Pilla Padesaave_audio.mp4", "/static/audio/Pilla Padesaave_cover.jpg"),
     Soundtrack(3, "Трек 3", "/static/audio/Pranam Pothunna_audio.mp4", "/static/audio/Pranam Pothunna_cover.jpg")
 ]
@@ -157,7 +147,7 @@ def login():
 @app.route('/toggle_favorite/<int:track_id>', methods=['POST'])
 @login_required
 def toggle_favorite(track_id: int):
-    if user_manager.is_favorite(current_user.id, track_id):
+    if not user_manager.is_favorite(current_user.id, track_id):
         user_manager.add_favorite_track(current_user.id, track_id)
     else:
         user_manager.remove_favorite_track(current_user.id, track_id)
