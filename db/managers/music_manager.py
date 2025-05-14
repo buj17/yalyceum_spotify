@@ -1,5 +1,3 @@
-from typing import Sequence
-
 from sqlalchemy.orm import Session
 
 from ..models import Music
@@ -50,6 +48,12 @@ class MusicManager:
             except ValueError:
                 return None
 
-    @staticmethod
-    def search_music(query: str) -> Sequence[Music]:
-        pass
+    def search_music(self, pattern: str) -> list[type[Music]]:
+        """Возвращает список объектов модели Music, в название которых входит паттерн query
+
+        :param pattern: Паттерн для поиска
+        :type pattern: str
+        :return: Список объектов модели Music, в название которых соответствует '%pattern%'
+        :rtype: list[type[Music]]
+        """
+        return self.db_session.query(Music).filter(Music.name.ilike(f'%{pattern}%')).all()
