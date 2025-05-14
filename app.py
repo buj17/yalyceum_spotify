@@ -31,10 +31,6 @@ app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024  # 2MB max
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 
-def allowed_file(filename):
-    return '.' in filename and \
-        filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
 @app.route('/update_avatar', methods=['POST'])
 @login_required
 def update_avatar():
@@ -57,12 +53,6 @@ def update_avatar():
             return jsonify({'success': False, 'message': str(e)}), 400
 
     return jsonify({'success': False, 'message': 'Ошибка при обработке файла'}), 400
-
-
-
-@app.route('/static/uploads/avatars/<filename>')
-def uploaded_avatar(filename: str):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 
 @login_manager.user_loader
