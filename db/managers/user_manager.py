@@ -1,3 +1,7 @@
+from io import BytesIO
+
+from PIL import Image
+
 from ..connect import create_session
 from ..models import User
 from ..s3manager import S3Manager
@@ -98,22 +102,38 @@ class UserManager:
             user_instance: User | None = db_session.query(User).filter(User.email == email).first()
             return user_instance is not None
 
-    @staticmethod
-    def upload_avatar(user_id: int, content: bytes):
-        """
+    def upload_avatar(self, user_id: int, content: bytes):
+        """ Загрузка аватарки пользователя в s3 хранилище
 
-        :param user_id:
-        :param content:
-        :return:
+        :param user_id: id пользователя
+        :type user_id: int
+        :param content: Валидные байты, хранящие изображение
+        :type content: bytes
         """
+        try:
+            self.get_user_by_id(user_id)
+        except ValueError:
+            raise
 
-        with (create_session() as db_session,
-              S3Manager() as s3_manager):
-            s3_manager.upload_file()
+        converted_content = _convert_image_bytes_to_jpeg(content)
+
+        with S3Manager() as s3_manager:
+            s3_manager.upload_file(f'user_avatar_{user_id}.jpg', converted_content, force=True)
 
     @staticmethod
     def get_avatar_url(user_id: int) -> str:
-        pass
+        """Возвращает url на аватарку пользователя
+
+        :param user_id: id пользователя
+        :return: url на аватарку пользователя
+        :rtype: str
+        """
+        with S3Manager() as s3_manager:
+            return s3_manager.get_file_url(
+                f'user_avatar_{user_id}.jpg',
+                content_type='image/jpeg',
+                content_disposition='inline'
+            )
 
     @staticmethod
     def add_favorite_track(user_id: int, music_id: int):
@@ -126,3 +146,17 @@ class UserManager:
     @staticmethod
     def remove_favorite_track(user_id: int, music_id: int):
         pass
+
+
+def _convert_image_bytes_to_jpeg(image_bytes: bytes) -> BytesIO:
+    try:
+        img = Image.open(BytesIO(image_bytes))
+        img = img.convert('RGB')
+        img_bytes = BytesIO()
+        img.save(img_bytes, format='JPEG')
+        img_bytes.seek(0)
+
+        return img_bytes
+
+    except Exception as ex:
+        raise ValueError('Invalid image data') from ex

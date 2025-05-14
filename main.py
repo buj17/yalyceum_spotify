@@ -1,6 +1,7 @@
-from db import create_session
-from sqlalchemy import text
+from db.managers import UserManager
 
-session = create_session()
-print(session.execute(text('SHOW TABLES')).fetchall())
-
+if __name__ == '__main__':
+    user_manager = UserManager()
+    # user_manager.upload_avatar(1, open('static/audio/Bangu Aaku Thechi_cover.jpg', 'rb').read())
+    # print(open('static/audio/Bangu Aaku Thechi_cover.jpg', 'rb').read())
+    print(user_manager.get_avatar_url(1))
