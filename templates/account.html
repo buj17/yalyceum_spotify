@@ -6,9 +6,9 @@
 
     <div class="mb-5 d-flex align-items-center">
         <div class="position-relative me-3">
-            <img src="{{ user.avatar_url }}" class="rounded-circle" width="80" height="80" alt="Аватар" id="userAvatar">
+            <img src="{{ user_manager.get_avatar_url(user.id) }}" class="rounded-circle" width="80" height="80" alt="Аватар" id="userAvatar">
             <div class="avatar-overlay position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center rounded-circle">
-                <button class="btn btn-sm btn-dark change-avatar-btn" data-bs-toggle="modal" data-bs-target="#avatarModal">
+                <button class="btn btn-sm btn-dark change-avatar-btn" id="changeAvatarBtn">
                     <i class="bi bi-camera"></i>
                 </button>
             </div>
@@ -81,66 +81,4 @@
         <p class="text-muted">В избранном пока нет треков.</p>
     {% endif %}
 </div>
-
-<style>
-    .avatar-overlay {
-        background-color: rgba(0, 0, 0, 0.5);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-        cursor: pointer;
-    }
-
-    .avatar-overlay:hover {
-        opacity: 1;
-    }
-
-    .change-avatar-btn {
-        opacity: 0.8;
-        transition: opacity 0.3s ease;
-    }
-
-    .change-avatar-btn:hover {
-        opacity: 1;
-    }
-</style>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const avatarForm = document.getElementById('avatarForm');
-
-    if (avatarForm) {
-        avatarForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const fileInput = document.getElementById('avatarInput');
-            const file = fileInput.files[0];
-
-            if (file) {
-                const formData = new FormData();
-                formData.append('avatar', file);
-
-                fetch('/update_avatar', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Обновляем изображение на странице
-                        document.getElementById('userAvatar').src = data.avatar_url + '?' + new Date().getTime();
-                        // Закрываем модальное окно
-                        bootstrap.Modal.getInstance(document.getElementById('avatarModal')).hide();
-                    } else {
-                        alert('Ошибка при загрузке аватара: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Произошла ошибка при загрузке файла');
-                });
-            } else {
-                alert('Пожалуйста, выберите файл');
-            }
-        });
-    }
-});
-</script>
 {% endblock %}

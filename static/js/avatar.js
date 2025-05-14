@@ -1,36 +1,40 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
+    // Открытие модального окна для смены аватара
+    const changeAvatarBtn = document.getElementById('changeAvatarBtn');
+    const avatarModal = new bootstrap.Modal(document.getElementById('avatarModal'));
+
+    changeAvatarBtn.addEventListener('click', function () {
+        avatarModal.show();
+    });
+
+    // Обработчик отправки формы для обновления аватара
     const avatarForm = document.getElementById('avatarForm');
+    avatarForm.addEventListener('submit', function (event) {
+        event.preventDefault();  // Предотвратить стандартное поведение формы (перезагрузку страницы)
 
-    if (avatarForm) {
-        avatarForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const fileInput = document.getElementById('avatarInput');
-            const file = fileInput.files[0];
+        const formData = new FormData(avatarForm);
 
-            if (file) {
-                const formData = new FormData();
-                formData.append('avatar', file);
+        // Отправка AJAX-запроса на сервер
+        fetch('/update_avatar', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Обновить аватар на странице
+                const avatarImg = document.getElementById('userAvatar');
+                avatarImg.src = data.avatar_url;  // Заменить URL изображения на новый
 
-                fetch('/update_avatar', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Обновляем изображение на странице
-                        document.querySelector('.rounded-circle[alt="Аватар"]').src = data.avatar_url + '?' + new Date().getTime();
-                        // Закрываем модальное окно
-                        bootstrap.Modal.getInstance(document.getElementById('avatarModal')).hide();
-                    } else {
-                        alert('Ошибка при загрузке аватара: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Произошла ошибка при загрузке файла');
-                });
+                // Закрыть модальное окно
+                avatarModal.hide();
+            } else {
+                alert('Ошибка при обновлении аватара: ' + data.message);
             }
+        })
+        .catch(error => {
+            console.error('Ошибка при отправке запроса:', error);
+            alert('Произошла ошибка при обновлении аватара');
         });
-    }
+    });
 });

@@ -1,7 +1,7 @@
 import os
 import secrets
 
-from flask import Flask, render_template, request, url_for, redirect
+from flask import Flask, render_template, request, url_for, redirect, jsonify
 from flask_login import LoginManager, login_user, current_user, logout_user, login_required
 from werkzeug.utils import secure_filename
 from flask import send_from_directory
@@ -35,30 +35,29 @@ def allowed_file(filename):
     return '.' in filename and \
         filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-
 @app.route('/update_avatar', methods=['POST'])
 @login_required
 def update_avatar():
     if 'avatar' not in request.files:
-        return {'success': False, 'message': 'Файл не выбран'}, 400
+        return jsonify({'success': False, 'message': 'Файл не найден'}), 400
 
     file = request.files['avatar']
-    if file.filename == '':
-        return {'success': False, 'message': 'Файл не выбран'}, 400
 
-    if file and allowed_file(file.filename):
-        # Генерируем уникальное имя файла
-        filename = f"user_{current_user.id}_{secure_filename(file.filename)}"
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)
+    if file:
+        try:
+            content = file.read()
 
-        # Обновляем путь к аватару в базе данных
-        avatar_url = f"/static/uploads/avatars/{filename}"
-        user_manager.update_user_avatar(current_user.id, avatar_url)
+            user_manager.upload_avatar(current_user.id, content)
 
-        return {'success': True, 'avatar_url': avatar_url}
+            avatar_url = user_manager.get_avatar_url(current_user.id)
 
-    return {'success': False, 'message': 'Недопустимый формат файла'}, 400
+            return jsonify({'success': True, 'avatar_url': avatar_url})
+
+        except ValueError as e:
+            return jsonify({'success': False, 'message': str(e)}), 400
+
+    return jsonify({'success': False, 'message': 'Ошибка при обработке файла'}), 400
+
 
 
 @app.route('/static/uploads/avatars/<filename>')
@@ -102,7 +101,7 @@ def search():
 def account():
     favorite_music = user_manager.get_favorite_tracks(current_user.id)
     return render_template('account.html', soundtracks=favorite_music, user=current_user, title='Аккаунт',
-                           music_manager=music_manager)
+                           music_manager=music_manager, user_manager=user_manager)
 
 
 @app.route('/register', methods=['GET', 'POST'])

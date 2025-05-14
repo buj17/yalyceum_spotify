@@ -86,3 +86,22 @@ h4 {
 .main-content {
     padding-bottom: 60px;
 }
+.avatar-overlay {
+    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    cursor: pointer;
+}
+
+.avatar-overlay:hover {
+    opacity: 1;
+}
+
+.change-avatar-btn {
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+.change-avatar-btn:hover {
+    opacity: 1;
+}
