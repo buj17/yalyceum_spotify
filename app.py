@@ -102,7 +102,7 @@ def redirect_to_login():
 @login_required
 def home():
     return render_template('home.html', user=current_user, soundtracks=soundtracks, title='Главная',
-                           favourites=not_favourites.get_favourites().split(', '))
+                           manager=user_manager)
 
 
 @app.route('/search', methods=['GET'])
@@ -112,7 +112,8 @@ def search():
     """music_manager = 1
     soundtracks = music_manager.search(query)"""
 
-    return render_template('search.html', user=current_user, query=query, soundtracks=soundtracks, title='Поиск')
+    return render_template('search.html', user=current_user, query=query, soundtracks=soundtracks, title='Поиск',
+                           manager=user_manager)
 
 
 @app.route('/account')
@@ -156,7 +157,7 @@ def login():
 @app.route('/toggle_favorite/<int:track_id>', methods=['POST'])
 @login_required
 def toggle_favorite(track_id: int):
-    if user_manager.is_track_favourite(current_user.id, track_id):
+    if user_manager.is_favorite(current_user.id, track_id):
         user_manager.add_favorite_track(current_user.id, track_id)
     else:
         user_manager.remove_favorite_track(current_user.id, track_id)
