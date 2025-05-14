@@ -1,6 +1,4 @@
-from db import create_session
-from sqlalchemy import text
+from db.managers import UserManager
 
-session = create_session()
-print(session.execute(text('SHOW TABLES')).fetchall())
-
+if __name__ == '__main__':
+    user_manager = UserManager()
