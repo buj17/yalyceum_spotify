@@ -1,7 +1,7 @@
 import os
 import secrets
 
-from flask import Flask, render_template, request, url_for, redirect, jsonify, flash
+from flask import Flask, render_template, request, url_for, redirect, jsonify
 from flask_login import LoginManager, login_user, current_user, logout_user, login_required
 from werkzeug.utils import secure_filename
 from flask import send_from_directory
@@ -35,49 +35,34 @@ def allowed_file(filename):
     return '.' in filename and \
         filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-AVATAR_UPLOAD_FOLDER = 'static/uploads/avatars'
-MAX_AVATAR_SIZE = 2 * 1024 * 1024  # 2MB
-
-
-
-
-@app.route('/upload_avatar', methods=['POST'])
-def upload_avatar():
+@app.route('/update_avatar', methods=['POST'])
+@login_required
+def update_avatar():
     if 'avatar' not in request.files:
-        flash('Файл не выбран', 'danger')
-        return redirect(url_for('account'))
+        return jsonify({'success': False, 'message': 'Файл не найден'}), 400
 
     file = request.files['avatar']
-    if file.filename == '':
-        flash('Файл не выбран', 'danger')
-        return redirect(url_for('account'))
 
-    if not (file and allowed_file(file.filename)):
-        flash('Недопустимый формат файла', 'danger')
-        return redirect(url_for('account'))
+    if file:
+        try:
+            content = file.read()
 
-    # Проверка размера файла
-    file.seek(0, os.SEEK_END)
-    if file.tell() > MAX_AVATAR_SIZE :
-        flash('Файл слишком большой (максимум 2MB)', 'danger')
-        return redirect(url_for('account'))
-    file.seek(0)
+            user_manager.upload_avatar(current_user.id, content)
 
-    try:
-        # Используем ваш метод для загрузки
-        user_manager.upload_avatar(current_user.id, file.read())
-        flash('Аватар успешно обновлен', 'success')
-    except ValueError as e:
-        flash(f'Ошибка: {str(e)}', 'danger')
-    except Exception as e:
-        flash('Произошла ошибка при загрузке', 'danger')
-        app.logger.error(f"Avatar upload error: {str(e)}")
+            avatar_url = user_manager.get_avatar_url(current_user.id)
 
-    return redirect(url_for('account'))
+            return jsonify({'success': True, 'avatar_url': avatar_url})
+
+        except ValueError as e:
+            return jsonify({'success': False, 'message': str(e)}), 400
+
+    return jsonify({'success': False, 'message': 'Ошибка при обработке файла'}), 400
 
 
+
+@app.route('/static/uploads/avatars/<filename>')
+def uploaded_avatar(filename: str):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 
 @login_manager.user_loader
