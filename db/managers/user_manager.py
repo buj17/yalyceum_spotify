@@ -121,19 +121,22 @@ class UserManager:
             s3_manager.upload_file(f'user_avatar_{user_id}.jpg', converted_content, force=True)
 
     @staticmethod
-    def get_avatar_url(user_id: int) -> str:
+    def get_avatar_url(user_id: int) -> str | None:
         """Возвращает url на аватарку пользователя
 
         :param user_id: id пользователя
-        :return: url на аватарку пользователя
-        :rtype: str
+        :return: url на аватарку пользователя или None, если у данного пользователя нет аватарки
+        :rtype: str | None
         """
         with S3Manager() as s3_manager:
-            return s3_manager.get_file_url(
-                f'user_avatar_{user_id}.jpg',
-                content_type='image/jpeg',
-                content_disposition='inline'
-            )
+            try:
+                return s3_manager.get_file_url(
+                    f'user_avatar_{user_id}.jpg',
+                    content_type='image/jpeg',
+                    content_disposition='inline'
+                )
+            except ValueError:
+                return None
 
     @staticmethod
     def add_favorite_track(user_id: int, music_id: int):
