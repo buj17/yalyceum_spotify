@@ -71,22 +71,6 @@ def load_user(user_id: int) -> User | None:
     return user_manager.get_user_by_id(user_id)
 
 
-class Soundtrack:
-    def __init__(self, id, title, audio_url, cover_url, is_favorite=False):
-        self.id = id
-        self.title = title
-        self.audio_url = audio_url
-        self.cover_url = cover_url
-        self.is_favorite = is_favorite
-
-
-soundtracks = [
-    Soundtrack(91, "Трек 1", "/static/audio/Bangu Aaku Thechi_audio.mp4", "/static/audio/Bangu Aaku Thechi_cover.jpg"),
-    Soundtrack(2, "Трек 2", "/static/audio/Pilla Padesaave_audio.mp4", "/static/audio/Pilla Padesaave_cover.jpg"),
-    Soundtrack(3, "Трек 3", "/static/audio/Pranam Pothunna_audio.mp4", "/static/audio/Pranam Pothunna_cover.jpg")
-]
-
-
 @login_manager.unauthorized_handler
 def redirect_to_login():
     return redirect('/login')
