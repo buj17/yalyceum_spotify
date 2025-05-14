@@ -52,10 +52,10 @@
             {% for soundtrack in soundtracks %}
                 <div class="col">
                     <div class="card soundtrack-card position-relative">
-                        <img src="{{ soundtrack.cover_url }}" class="card-img-top" alt="{{ soundtrack.title }}">
+                        <img src="{{ music_manager.get_music_image_url(soundtrack.id) }}" class="card-img-top" alt="{{ soundtrack.name }}">
 
                         <div class="card-body">
-                            <h5 class="card-title">{{ soundtrack.title }}</h5>
+                            <h5 class="card-title">{{ soundtrack.name }}</h5>
                             {% if soundtrack.artist %}
                             <p class="card-text text-muted small">{{ soundtrack.artist }}</p>
                             {% endif %}
@@ -71,7 +71,7 @@
                             </button>
                         </div>
 
-                        <audio id="audio-{{ soundtrack.id }}" src="{{ soundtrack.audio_url }}"></audio>
+                        <audio id="audio-{{ soundtrack.id }}" src="{{ music_manager.get_music_audio_url(soundtrack.id) }}"></audio>
                     </div>
                 </div>
             {% endfor %}

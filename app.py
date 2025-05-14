@@ -6,13 +6,19 @@ from flask_login import LoginManager, login_user, current_user, logout_user, log
 from werkzeug.utils import secure_filename
 from flask import send_from_directory
 
+from db.connect import create_session
+from db.managers.music_manager import MusicManager
 from db.managers.user_manager import UserManager, EmailAlreadyExistsError
 from db.models import User
 from forms import LoginForm, RegistrationForm
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = secrets.token_hex(64)
+
+# Менеджеры
+db_session = create_session()
 user_manager = UserManager()
+music_manager = MusicManager(db_session)
 login_manager = LoginManager(app)
 
 # Добавим конфигурацию для загрузки файлов
@@ -60,8 +66,6 @@ def uploaded_avatar(filename: str):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 
-
-
 @login_manager.user_loader
 def load_user(user_id: int) -> User | None:
     return user_manager.get_user_by_id(user_id)
@@ -91,25 +95,30 @@ def redirect_to_login():
 @app.route('/')
 @login_required
 def home():
-    return render_template('home.html', user=current_user, soundtracks=soundtracks, title='Главная',
-                           manager=user_manager)
+    temporal_soundtracks = music_manager.search_music('pilla')
+    return render_template('home.html', user=current_user, soundtracks=temporal_soundtracks, title='Главная',
+                           user_manager=user_manager, music_manager=music_manager)
 
 
 @app.route('/search', methods=['GET'])
 @login_required
 def search():
     query = request.args.get('q', '').strip()
-    """music_manager = 1
-    soundtracks = music_manager.search(query)"""
+    if query:
+        result = music_manager.search_music(query)
+    else:
+        result = []
 
-    return render_template('search.html', user=current_user, query=query, soundtracks=soundtracks, title='Поиск',
-                           manager=user_manager)
+    return render_template('search.html', user=current_user, query=query, soundtracks=result, title='Поиск',
+                           user_manager=user_manager, music_manager=music_manager)
 
 
 @app.route('/account')
 @login_required
 def account():
-    return render_template('account.html', soundtracks=soundtracks, user=current_user, title='Аккаунт')
+    favorite_music = user_manager.get_favorite_tracks(current_user.id)
+    return render_template('account.html', soundtracks=favorite_music, user=current_user, title='Аккаунт',
+                           music_manager=music_manager)
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -159,6 +168,8 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
+
+db_session.close()
 
 if __name__ == '__main__':
     app.run('127.0.0.1', port=8080)
