@@ -190,6 +190,21 @@ class UserManager:
             db_session.delete(favorite_instance)
             db_session.commit()
 
+    @staticmethod
+    def is_favorite(user_id: int, music_id: int) -> bool:
+        """Проверяет, находится ли трек в избранных у пользователя
+
+        :param user_id: id пользователя
+        :type user_id: int
+        :param music_id: id трека
+        :type music_id: int
+        :return: Булево значение - True, если трек в избранных, False - в противном случае
+        :rtype: bool
+        """
+        with create_session() as db_session:
+            favorite_instance: Favorite | None = db_session.get(Favorite, (user_id, music_id))
+            return favorite_instance is not None
+
 
 def _convert_image_bytes_to_jpeg(image_bytes: bytes) -> BytesIO:
     try:
