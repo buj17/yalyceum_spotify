@@ -40,7 +40,7 @@ class MusicManager:
         with S3Manager() as s3_manager:
             try:
                 url = s3_manager.get_file_url(
-                    f'music_audio_{music_id}.jpg',
+                    f'music_image_{music_id}.jpg',
                     content_type='image/jpeg',
                     content_disposition='inline'
                 )
