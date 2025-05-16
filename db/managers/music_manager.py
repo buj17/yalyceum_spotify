@@ -19,7 +19,7 @@ class MusicManager:
         """
         with S3Manager() as s3_manager:
             try:
-                url = s3_manager.get_file_url(
+                url = s3_manager.get_file_url_safe(
                     f'music_audio_{music_id}.mp4',
                     content_type='audio/mp3',
                     content_disposition='inline'
@@ -39,7 +39,7 @@ class MusicManager:
         """
         with S3Manager() as s3_manager:
             try:
-                url = s3_manager.get_file_url(
+                url = s3_manager.get_file_url_safe(
                     f'music_image_{music_id}.jpg',
                     content_type='image/jpeg',
                     content_disposition='inline'
@@ -47,6 +47,56 @@ class MusicManager:
                 return url
             except ValueError:
                 return None
+
+    @staticmethod
+    def get_music_url_pair(music_id: int) -> tuple[str, str] | None:
+        with S3Manager() as s3_manager:
+            try:
+                url_pair = (
+                    s3_manager.get_file_url_safe(
+                        f'music_audio_{music_id}.mp4',
+                        content_type='audio/mp3',
+                        content_disposition='inline'
+                    ),
+                    s3_manager.get_file_url_safe(
+                        f'music_image_{music_id}.jpg',
+                        content_type='image/jpeg',
+                        content_disposition='inline'
+                    )
+                )
+                return url_pair
+            except ValueError:
+                return None
+
+    @staticmethod
+    def get_music_url_pairs(*music_ids: int) -> list[tuple[str, str]]:
+        """Возвращает список, каждый элемент которого - кортеж с первым элементом - url на аудио музыки
+        и вторым элементом - url на изображение к музыке.\n
+        Внимание! Данный метод не проверяет существование записей в базе данных и файлов в s3.
+        Используйте данный метод, если уверены, что в базе данных и s3 хранилище существует необходимая информация.
+
+        :param music_ids: id треков
+        :return: Список, каждый элемент которого - кортеж с первым элементом - url на аудио музыки
+        и вторым элементом - url на изображение к музыке.
+        :rtype: list[tuple[str, str]]
+        """
+        with S3Manager() as s3_manager:
+            url_lists = s3_manager.get_file_group_urls(
+                *zip(
+                    map(
+                        lambda music_id: f'music_audio_{music_id}.mp4',
+                        music_ids
+                    ),
+                    map(
+                        lambda music_id: f'music_image_{music_id}.jpg',
+                        music_ids
+                    )
+                ),
+                content_types=('audio/mp3', 'image/jpeg'),
+                content_disposition='inline'
+            )
+        res: list[tuple[str, str]] = list(map(tuple, url_lists))
+        return res
 
     def search_music(self, pattern: str) -> list[type[Music]]:
         """Возвращает список объектов модели Music, в название которых входит паттерн query
