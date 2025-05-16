@@ -130,7 +130,7 @@ class UserManager:
         """
         with S3Manager() as s3_manager:
             try:
-                return s3_manager.get_file_url(
+                return s3_manager.get_file_url_safe(
                     f'user_avatar_{user_id}.jpg',
                     content_type='image/jpeg',
                     content_disposition='inline'
