@@ -68,8 +68,8 @@ def redirect_to_login():
 @app.route('/')
 @login_required
 def home():
-    temporal_soundtracks = music_manager.search_music('pilla')
-    return render_template('home.html', user=current_user, soundtracks=temporal_soundtracks, title='Главная',
+    soundtracks = music_manager.get_random_music()
+    return render_template('home.html', user=current_user, soundtracks=soundtracks, title='Главная',
                            user_manager=user_manager, music_manager=music_manager)
 
 

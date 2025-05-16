@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from random import sample
 
 from ..models import Music
 from ..s3manager import S3Manager
@@ -107,3 +108,11 @@ class MusicManager:
         :rtype: list[type[Music]]
         """
         return self.db_session.query(Music).filter(Music.name.ilike(f'%{pattern}%')).all()
+
+    def get_random_music(self) -> list[type[Music]]:
+        """Возвращает список 5 случайных, не повторяющихся, объектов модели Music
+
+        :return: Список 5 случайных, не повторяющихся, объектов модели Music
+        :rtype: list[type[Music]]
+        """
+        return sample(self.db_session.query(Music).all(), 5)
