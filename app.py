@@ -65,12 +65,20 @@ def redirect_to_login():
     return redirect('/login')
 
 
+def urls_dictionary_getter(tracks):
+    soundtracks = [track.id for track in tracks]
+    urls = music_manager.get_music_url_pairs(*soundtracks)
+    res = [{'track': track, 'track_url': track_url, 'img_url':img_url} for track, (track_url, img_url) in zip(tracks, urls)]
+    return res
+
+
 @app.route('/')
 @login_required
 def home():
-    soundtracks = music_manager.get_random_music()
-    return render_template('home.html', user=current_user, soundtracks=soundtracks, title='Главная',
-                           user_manager=user_manager, music_manager=music_manager)
+    temporal_soundtracks = music_manager.search_music('pilla')
+    res = urls_dictionary_getter(temporal_soundtracks)
+    return render_template('home.html', user=current_user, soundtracks=temporal_soundtracks, title='Главная',
+                           user_manager=user_manager, music_manager=music_manager, res=res)
 
 
 @app.route('/search', methods=['GET'])
@@ -81,17 +89,18 @@ def search():
         result = music_manager.search_music(query)
     else:
         result = []
-
+    res = urls_dictionary_getter(result)
     return render_template('search.html', user=current_user, query=query, soundtracks=result, title='Поиск',
-                           user_manager=user_manager, music_manager=music_manager)
+                           user_manager=user_manager, music_manager=music_manager, res=res)
 
 
 @app.route('/account')
 @login_required
 def account():
     favorite_music = user_manager.get_favorite_tracks(current_user.id)
+    res = urls_dictionary_getter(favorite_music)
     return render_template('account.html', soundtracks=favorite_music, user=current_user, title='Аккаунт',
-                           music_manager=music_manager, user_manager=user_manager)
+                           music_manager=music_manager, user_manager=user_manager, res=res)
 
 
 @app.route('/register', methods=['GET', 'POST'])
