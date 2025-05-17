@@ -27,7 +27,7 @@ class UserManager:
         with create_session() as db_session:
             user_instance: User | None = db_session.get(User, user_id)
             if user_instance is None:
-                raise ValueError(f'User not found with id: {user_id}')
+                raise ValueError(f"User not found with id: {user_id}")
             return user_instance
 
     @staticmethod
@@ -44,7 +44,7 @@ class UserManager:
         with create_session() as db_session:
             user_instance: User | None = db_session.query(User).filter(User.email == email).first()
             if user_instance is None:
-                raise ValueError(f'User not found with email: {email}')
+                raise ValueError(f"User not found with email: {email}")
             return user_instance
 
     def add_user(self, user: User) -> None:
@@ -55,7 +55,7 @@ class UserManager:
         :raises EmailAlreadyExistsError: Если пользователь с таким email уже существует
         """
         if self._email_exists(user.email):
-            raise EmailAlreadyExistsError(f'Email already exists: {user.email}')
+            raise EmailAlreadyExistsError(f"Email already exists: {user.email}")
 
         with create_session() as db_session:
             try:
@@ -118,7 +118,7 @@ class UserManager:
         converted_content = _convert_image_bytes_to_jpeg(content)
 
         with S3Manager() as s3_manager:
-            s3_manager.upload_file(f'user_avatar_{user_id}.jpg', converted_content, force=True)
+            s3_manager.upload_file(f"user_avatar_{user_id}.jpg", converted_content, force=True)
 
     @staticmethod
     def get_avatar_url(user_id: int) -> str | None:
@@ -130,10 +130,10 @@ class UserManager:
         """
         with S3Manager() as s3_manager:
             try:
-                return s3_manager.get_file_url(
-                    f'user_avatar_{user_id}.jpg',
-                    content_type='image/jpeg',
-                    content_disposition='inline'
+                return s3_manager.get_file_url_safe(
+                    f"user_avatar_{user_id}.jpg",
+                    content_type="image/jpeg",
+                    content_disposition="inline"
                 )
             except ValueError:
                 return None
@@ -151,7 +151,7 @@ class UserManager:
         with create_session() as db_session:
             favorite_instance: Favorite | None = db_session.get(Favorite, (user_id, music_id))
             if favorite_instance is not None:
-                raise ValueError('Favorite instance already exists')
+                raise ValueError("Favorite instance already exists")
 
             favorite = Favorite(user_id=user_id, music_id=music_id)
             db_session.add(favorite)
@@ -169,7 +169,7 @@ class UserManager:
         with create_session() as db_session:
             user_instance: User | None = db_session.get(User, user_id)
             if user_instance is None:
-                raise ValueError(f'User does not exist with id: {user_id}')
+                raise ValueError(f"User does not exist with id: {user_id}")
             return list(map(lambda favorite: favorite.music, user_instance.favorites))
 
     @staticmethod
@@ -185,7 +185,7 @@ class UserManager:
         with create_session() as db_session:
             favorite_instance: Favorite | None = db_session.get(Favorite, (user_id, music_id))
             if favorite_instance is None:
-                raise ValueError('Favorite instance does not exist')
+                raise ValueError("Favorite instance does not exist")
 
             db_session.delete(favorite_instance)
             db_session.commit()
@@ -209,12 +209,12 @@ class UserManager:
 def _convert_image_bytes_to_jpeg(image_bytes: bytes) -> BytesIO:
     try:
         img = Image.open(BytesIO(image_bytes))
-        img = img.convert('RGB')
+        img = img.convert("RGB")
         img_bytes = BytesIO()
-        img.save(img_bytes, format='JPEG')
+        img.save(img_bytes, format="JPEG")
         img_bytes.seek(0)
 
         return img_bytes
 
     except Exception as ex:
-        raise ValueError('Invalid image data') from ex
+        raise ValueError("Invalid image data") from ex

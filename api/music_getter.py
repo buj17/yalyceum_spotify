@@ -1,7 +1,6 @@
-from pathlib import Path
-from pprint import pprint
-from typing import List, Dict, Optional, Any
 import os
+from pathlib import Path
+from typing import List, Dict, Optional, Any
 
 import requests
 
@@ -75,84 +74,38 @@ class ApiUtil:
         img_path_lst = []
         audio_path_lst = []
 
-        for song in album_data.get('songs', []):
-            song_name = song['name']
+        for song in album_data.get("songs", []):
+            song_name = song["name"]
             song_key = song_name.strip()
 
             # Скачиваем изображение
-            img_url = song.get('image_url')
-            img_path = None
+            img_url = song.get("image_url")
             if img_url:
-                img_ext = os.path.splitext(img_url)[-1].split('?')[0]
+                img_ext = os.path.splitext(img_url)[-1].split("?")[0]
                 img_path = os.path.join(path_to_download, f"{song_key}_cover{img_ext}")
                 try:
                     with requests.get(img_url, stream=True) as r:
                         r.raise_for_status()
-                        with open(img_path, 'wb') as f:
+                        with open(img_path, "wb") as f:
                             for chunk in r.iter_content(chunk_size=8192):
                                 f.write(chunk)
                     img_path_lst.append(img_path)
                 except Exception as e:
                     print(f"Ошибка при скачивании изображения для {song_name}: {e}")
-                    img_path = None
 
             # Скачиваем аудиофайл
-            music_url = song.get('music_url')
-            audio_path = None
+            music_url = song.get("music_url")
             if music_url:
-                audio_ext = os.path.splitext(music_url)[-1].split('?')[0]
+                audio_ext = os.path.splitext(music_url)[-1].split("?")[0]
                 audio_path = os.path.join(path_to_download, f"{song_key}_audio{audio_ext}")
                 try:
                     with requests.get(music_url, stream=True) as r:
                         r.raise_for_status()
-                        with open(audio_path, 'wb') as f:
+                        with open(audio_path, "wb") as f:
                             for chunk in r.iter_content(chunk_size=8192):
                                 f.write(chunk)
                     audio_path_lst.append(audio_path)
                 except Exception as e:
                     print(f"Ошибка при скачивании аудио для {song_name}: {e}")
-                    audio_path = None
 
         return {"img_path_lst": img_path_lst, "audio_path_lst": audio_path_lst}
-
-    # def download_file(self, url, filename):
-    #     path_to_download = Path(__file__).parent.parent / "media"
-    #     os.makedirs(path_to_download, exist_ok=True)
-    #     path = os.path.join(path_to_download, filename) + ".mp3"
-    #
-    #     headers = {
-    #         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-    #     }
-    #
-    #     try:
-    #         print(f"Скачиваем: {url}")
-    #         response = requests.get(url, stream=True, headers=headers)
-    #         print(f"Статус: {response.status_code}")
-    #         response.raise_for_status()
-    #
-    #         total_written = 0
-    #         with open(path, 'wb') as f:
-    #             for chunk in response.iter_content(8192):
-    #                 if chunk:
-    #                     f.write(chunk)
-    #                     total_written += len(chunk)
-    #
-    #         print(f"Файл сохранён: {path}, размер: {total_written} байт")
-    #         return path
-    #
-    #     except Exception as e:
-    #         print(f"Ошибка при скачивании: {e}")
-    #         return None
-
-
-# if __name__ == "__main__":
-    # api_util = ApiUtil()
-    # album_ids = api_util.get_album_ids_by_category("love", limit=1)
-    # if album_ids:
-    #     for album_id in album_ids:
-    #         album_info = api_util.get_album_info(album_id)
-    #         res_of_download = api_util.download_song_data(album_info)
-    #         img_path_lst = res_of_download["img_path_lst"]
-    #         audio_path_lst = res_of_download["audio_path_lst"]
-    #         print(img_path_lst, audio_path_lst)
-    #

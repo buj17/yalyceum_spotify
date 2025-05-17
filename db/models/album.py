@@ -5,7 +5,7 @@ from .base import Base
 
 class Album(Base):
     """Таблица альбомов"""
-    __tablename__ = 'albums'
+    __tablename__ = "albums"
 
     id = sqlalchemy.Column(
         sqlalchemy.Integer,

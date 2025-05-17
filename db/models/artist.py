@@ -7,7 +7,7 @@ from .base import Base
 
 class Artist(Base):
     """Таблица артистов (исполнителей)"""
-    __tablename__ = 'artists'
+    __tablename__ = "artists"
 
     def __init__(self,
                  *,

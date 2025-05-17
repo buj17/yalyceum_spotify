@@ -7,7 +7,7 @@ from .base import Base
 
 class User(Base, UserMixin):
     """Таблица пользователей"""
-    __tablename__ = 'users'
+    __tablename__ = "users"
 
     def __init__(self,
                  *,
@@ -52,7 +52,7 @@ class User(Base, UserMixin):
         return check_password_hash(self.password, password)
 
     def __repr__(self):
-        return f'<User {self.username}>'
+        return f"<User {self.username}>"
 
     favorites = sqlalchemy.orm.relationship(
         "Favorite",

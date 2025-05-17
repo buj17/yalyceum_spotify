@@ -1,159 +1,185 @@
-import os
 import secrets
+from typing import Sequence
 
-from flask import Flask, render_template, request, url_for, redirect
-from flask import send_from_directory
+from flask import Flask, render_template, request, url_for, redirect, jsonify
 from flask_login import LoginManager, login_user, current_user, logout_user, login_required
-from werkzeug.utils import secure_filename
 
 from db.connect import create_session
 from db.managers.music_manager import MusicManager
 from db.managers.user_manager import UserManager, EmailAlreadyExistsError
-from db.models import User
+from db.models import User, Music
 from forms import LoginForm, RegistrationForm
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = secrets.token_hex(64)
+app.config["SECRET_KEY"] = secrets.token_hex(64)
 
-# Менеджеры
-db_session = create_session()
-user_manager = UserManager()
-music_manager = MusicManager(db_session)
 login_manager = LoginManager(app)
 
 # Добавим конфигурацию для загрузки файлов
-UPLOAD_FOLDER = 'static/uploads/avatars'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024  # 2MB max
-
-# Создаем папку для загрузок, если ее нет
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
+app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024  # 2MB max
 
 
-def allowed_file(filename):
-    return '.' in filename and \
-        filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-
-@app.route('/update_avatar', methods=['POST'])
+@app.route("/update_avatar", methods=["POST"])
 @login_required
 def update_avatar():
-    if 'avatar' not in request.files:
-        return {'success': False, 'message': 'Файл не выбран'}, 400
+    if "avatar" not in request.files:
+        return jsonify({"success": False, "message": "Файл не найден"}), 400
 
-    file = request.files['avatar']
-    if file.filename == '':
-        return {'success': False, 'message': 'Файл не выбран'}, 400
+    file = request.files["avatar"]
 
-    if file and allowed_file(file.filename):
-        # Генерируем уникальное имя файла
-        filename = f"user_{current_user.id}_{secure_filename(file.filename)}"
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)
+    if file:
+        try:
+            user_manager = UserManager()
+            content = file.read()
 
-        # Обновляем путь к аватару в базе данных
-        avatar_url = f"/static/uploads/avatars/{filename}"
-        user_manager.update_user_avatar(current_user.id, avatar_url)
+            user_manager.upload_avatar(current_user.id, content)
 
-        return {'success': True, 'avatar_url': avatar_url}
+            avatar_url = user_manager.get_avatar_url(current_user.id)
 
-    return {'success': False, 'message': 'Недопустимый формат файла'}, 400
+            return jsonify({"success": True, "avatar_url": avatar_url})
 
+        except ValueError as e:
+            return jsonify({"success": False, "message": str(e)}), 400
 
-@app.route('/static/uploads/avatars/<filename>')
-def uploaded_avatar(filename: str):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+    return jsonify({"success": False, "message": "Ошибка при обработке файла"}), 400
 
 
 @login_manager.user_loader
 def load_user(user_id: int) -> User | None:
+    user_manager = UserManager()
     return user_manager.get_user_by_id(user_id)
 
 
 @login_manager.unauthorized_handler
 def redirect_to_login():
-    return redirect('/login')
+    return redirect("/login")
 
 
-@app.route('/')
+def urls_dictionary_getter(tracks: Sequence[type[Music] | Music]):
+    soundtracks = [track.id for track in tracks]
+    with create_session() as db_session:
+        music_manager = MusicManager(db_session)
+        urls = music_manager.get_music_url_pairs(*soundtracks)
+        res = [
+            {
+                "track": track,
+                "track_url": track_url,
+                "img_url": img_url
+            }
+            for track, (track_url, img_url) in zip(tracks, urls)
+        ]
+        return res
+
+
+@app.route("/")
 @login_required
 def home():
-    temporal_soundtracks = music_manager.search_music('pilla')
-    return render_template('home.html', user=current_user, soundtracks=temporal_soundtracks, title='Главная',
-                           user_manager=user_manager, music_manager=music_manager)
+    with create_session() as db_session:
+        music_manager = MusicManager(db_session)
+        user_manager = UserManager()
+        temporal_soundtracks = music_manager.get_random_music()
+        res = urls_dictionary_getter(temporal_soundtracks)
+        return render_template("home.html",
+                               user=current_user,
+                               soundtracks=temporal_soundtracks,
+                               title="Главная",
+                               user_manager=user_manager,
+                               res=res)
 
 
-@app.route('/search', methods=['GET'])
+@app.route("/search", methods=["GET"])
 @login_required
 def search():
-    query = request.args.get('q', '').strip()
-    if query:
-        result = music_manager.search_music(query)
-    else:
-        result = []
+    with create_session() as db_session:
+        music_manager = MusicManager(db_session)
+        user_manager = UserManager()
+        query = request.args.get("q", "").strip()
+        if query:
+            result = music_manager.search_music(query)
+        else:
+            result = []
+        res = urls_dictionary_getter(result)
+        return render_template("search.html",
+                               user=current_user,
+                               query=query,
+                               title="Поиск",
+                               user_manager=user_manager,
+                               res=res)
 
-    return render_template('search.html', user=current_user, query=query, soundtracks=result, title='Поиск',
-                           user_manager=user_manager, music_manager=music_manager)
 
-
-@app.route('/account')
+@app.route("/account")
 @login_required
 def account():
+    user_manager = UserManager()
     favorite_music = user_manager.get_favorite_tracks(current_user.id)
-    return render_template('account.html', soundtracks=favorite_music, user=current_user, title='Аккаунт',
-                           music_manager=music_manager)
+    res = urls_dictionary_getter(favorite_music)
+    return render_template("account.html",
+                           user=current_user,
+                           title="Аккаунт",
+                           user_manager=user_manager,
+                           res=res)
 
 
-@app.route('/register', methods=['GET', 'POST'])
+@app.route("/register", methods=["GET", "POST"])
 def register():
     form = RegistrationForm()
+    user_manager = UserManager()
     if form.validate_on_submit():
         user = User(username=form.username.data, email=form.email.data, password=form.password.data)
         try:
             user_manager.add_user(user)
             login_user(user)
-            return redirect('/')
+            return redirect("/")
         except EmailAlreadyExistsError:
-            return render_template('register.html', massage='Уже существует пользователь с такой почтой или именем',
+            return render_template("register.html",
+                                   message="Уже существует пользователь с такой почтой",
                                    form=form,
-                                   user=user, title='Регистрация')
-    return render_template('register.html', user=current_user, title='Регистрация', form=form)
+                                   user=user,
+                                   title="Регистрация")
+
+    return render_template("register.html",
+                           user=current_user,
+                           title="Регистрация",
+                           form=form)
 
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route("/login", methods=["GET", "POST"])
 def login():
     form = LoginForm()
     if form.validate_on_submit():
         try:
+            user_manager = UserManager()
             user = user_manager.get_user_by_email(form.email.data)
             if not user.check_password(form.password.data):
                 raise ValueError
             login_user(user)
-            return redirect('/')
+            return redirect("/")
         except ValueError:
-            return render_template('login.html', massage='Неверная почта или пароль', user=current_user, title='Войти',
+            return render_template("login.html",
+                                   massage="Неверная почта или пароль",
+                                   user=current_user,
+                                   title="Войти",
                                    form=form)
-    return render_template('login.html', user=current_user, title='Войти', form=form)
+
+    return render_template("login.html",
+                           user=current_user,
+                           title="Войти",
+                           form=form)
 
 
-@app.route('/toggle_favorite/<int:track_id>', methods=['POST'])
+@app.route("/toggle_favorite/<int:track_id>", methods=["POST"])
 @login_required
 def toggle_favorite(track_id: int):
+    user_manager = UserManager()
     if not user_manager.is_favorite(current_user.id, track_id):
         user_manager.add_favorite_track(current_user.id, track_id)
     else:
         user_manager.remove_favorite_track(current_user.id, track_id)
-    return '', 204
+    return "", 204
 
 
-@app.route('/logout', methods=['GET', 'POST'])
+@app.route("/logout", methods=["GET", "POST"])
 def logout():
     logout_user()
-    return redirect(url_for('login'))
-
-
-db_session.close()
-
-if __name__ == '__main__':
-    app.run('127.0.0.1', port=8080)
+    return redirect(url_for("login"))
