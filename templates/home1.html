@@ -6,24 +6,24 @@
 
         <h4 class="mb-3">Саундтреки</h4>
         <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
-            {% for dct in res %}
+            {% for soundtrack in soundtracks %}
                 <div class="col">
                     <div class="card soundtrack-card position-relative">
-                        <img src="{{ dct['img_url'] }}" class="card-img-top" alt="{{ dct['track'].name }}">
+                        <img src="{{ music_manager.get_music_image_url(soundtrack.id) }}" class="card-img-top" alt="{{ soundtrack.name }}">
 
                         <div class="card-body">
-                            <h5 class="card-title">{{ dct['track'].name }}</h5>
-                            {% if dct['track'].artist %}
-                            <p class="card-text text-muted small">{{ dct['track'].artist }}</p>
+                            <h5 class="card-title">{{ soundtrack.name }}</h5>
+                            {% if soundtrack.artist %}
+                            <p class="card-text text-muted small">{{ soundtrack.artist }}</p>
                             {% endif %}
                         </div>
 
                         <div class="play-overlay position-absolute top-0 start-0 w-100 h-100 d-flex flex-row justify-content-center align-items-center gap-3">
-                            <button class="btn btn-success rounded-circle shadow play-btn" data-audio-id="audio-{{ dct['track'].id }}" title="Воспроизвести">
+                            <button class="btn btn-success rounded-circle shadow play-btn" data-audio-id="audio-{{ soundtrack.id }}" title="Воспроизвести">
                                 <i class="bi bi-play-fill fs-4"></i>
                             </button>
 
-                            {% if user_manager.is_favorite(user.id, dct['track'].id) %}
+                            {% if user_manager.is_favorite(user.id, soundtrack.id) %}
                                 <button class="btn btn-danger rounded-circle shadow favorite-btn" title="Убрать из избранного">
                                     <i class="bi bi-heart-fill fs-5"></i>
                                 </button>
@@ -35,7 +35,7 @@
                             {% endif %}
                         </div>
 
-                        <audio id="audio-{{ dct['track'].id }}" src="{{ dct['track_url'] }}"></audio>
+                        <audio id="audio-{{ soundtrack.id }}" src="{{ music_manager.get_music_audio_url(soundtrack.id) }}"></audio>
                     </div>
                 </div>
 
