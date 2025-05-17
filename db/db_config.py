@@ -21,8 +21,8 @@ class Settings(BaseSettings):
                 f"ssl_ca={self.DB_SSL_CA}")
 
     class Config:
-        env_file = os.path.join(_get_module_path(), '../.env')  # используй BASEDIR
-        env_file_encoding = 'utf-8'
+        env_file = os.path.join(_get_module_path(), "../.env")
+        env_file_encoding = "utf-8"
 
 
 settings = Settings()

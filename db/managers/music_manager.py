@@ -1,5 +1,6 @@
-from sqlalchemy.orm import Session
 from random import sample
+
+from sqlalchemy.orm import Session
 
 from ..models import Music
 from ..s3manager import S3Manager
@@ -21,9 +22,9 @@ class MusicManager:
         with S3Manager() as s3_manager:
             try:
                 url = s3_manager.get_file_url_safe(
-                    f'music_audio_{music_id}.mp4',
-                    content_type='audio/mp3',
-                    content_disposition='inline'
+                    f"music_audio_{music_id}.mp4",
+                    content_type="audio/mp3",
+                    content_disposition="inline"
                 )
                 return url
             except ValueError:
@@ -41,9 +42,9 @@ class MusicManager:
         with S3Manager() as s3_manager:
             try:
                 url = s3_manager.get_file_url_safe(
-                    f'music_image_{music_id}.jpg',
-                    content_type='image/jpeg',
-                    content_disposition='inline'
+                    f"music_image_{music_id}.jpg",
+                    content_type="image/jpeg",
+                    content_disposition="inline"
                 )
                 return url
             except ValueError:
@@ -55,14 +56,14 @@ class MusicManager:
             try:
                 url_pair = (
                     s3_manager.get_file_url_safe(
-                        f'music_audio_{music_id}.mp4',
-                        content_type='audio/mp3',
-                        content_disposition='inline'
+                        f"music_audio_{music_id}.mp4",
+                        content_type="audio/mp3",
+                        content_disposition="inline"
                     ),
                     s3_manager.get_file_url_safe(
-                        f'music_image_{music_id}.jpg',
-                        content_type='image/jpeg',
-                        content_disposition='inline'
+                        f"music_image_{music_id}.jpg",
+                        content_type="image/jpeg",
+                        content_disposition="inline"
                     )
                 )
                 return url_pair
@@ -85,16 +86,16 @@ class MusicManager:
             url_lists = s3_manager.get_file_group_urls(
                 *zip(
                     map(
-                        lambda music_id: f'music_audio_{music_id}.mp4',
+                        lambda music_id: f"music_audio_{music_id}.mp4",
                         music_ids
                     ),
                     map(
-                        lambda music_id: f'music_image_{music_id}.jpg',
+                        lambda music_id: f"music_image_{music_id}.jpg",
                         music_ids
                     )
                 ),
-                content_types=('audio/mp3', 'image/jpeg'),
-                content_disposition='inline'
+                content_types=("audio/mp3", "image/jpeg"),
+                content_disposition="inline"
             )
         res: list[tuple[str, str]] = list(map(tuple, url_lists))
         return res
@@ -104,10 +105,10 @@ class MusicManager:
 
         :param pattern: Паттерн для поиска
         :type pattern: str
-        :return: Список объектов модели Music, в название которых соответствует '%pattern%'
+        :return: Список объектов модели Music, в название которых соответствует "%pattern%"
         :rtype: list[type[Music]]
         """
-        return self.db_session.query(Music).filter(Music.name.ilike(f'%{pattern}%')).all()
+        return self.db_session.query(Music).filter(Music.name.ilike(f"%{pattern}%")).all()
 
     def get_random_music(self) -> list[type[Music]]:
         """Возвращает список 5 случайных, не повторяющихся, объектов модели Music

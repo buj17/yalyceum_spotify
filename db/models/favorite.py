@@ -4,16 +4,16 @@ from .base import Base
 
 
 class Favorite(Base):
-    __tablename__ = 'favorite'
+    __tablename__ = "favorite"
 
     user_id = sqlalchemy.Column(
         sqlalchemy.Integer,
-        sqlalchemy.ForeignKey('users.id'),
+        sqlalchemy.ForeignKey("users.id"),
         primary_key=True
     )
     music_id = sqlalchemy.Column(
         sqlalchemy.Integer,
-        sqlalchemy.ForeignKey('musics.id'),
+        sqlalchemy.ForeignKey("musics.id"),
         primary_key=True
     )
     user = sqlalchemy.orm.relationship("User", back_populates="favorites")

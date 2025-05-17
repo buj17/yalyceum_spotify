@@ -5,7 +5,7 @@ from .base import Base
 
 class Music(Base):
     """Таблица музыки (треков)"""
-    __tablename__ = 'musics'
+    __tablename__ = "musics"
 
     id = sqlalchemy.Column(
         sqlalchemy.Integer,
@@ -35,7 +35,7 @@ class Music(Base):
     )
     album_id = sqlalchemy.Column(
         sqlalchemy.Integer,
-        sqlalchemy.ForeignKey('albums.id'),
+        sqlalchemy.ForeignKey("albums.id"),
         nullable=True,
     )
     artists = sqlalchemy.orm.relationship(

@@ -7,7 +7,7 @@ from botocore.response import StreamingBody
 from types_boto3_s3 import S3Client
 from types_boto3_s3.service_resource import BucketObjectsCollection
 
-BUCKET_NAME = 'melodia'
+BUCKET_NAME = "melodia"
 
 
 class S3Manager:
@@ -18,8 +18,8 @@ class S3Manager:
     def __init__(self):
         self._session = boto3.session.Session()
         self._s3_client: S3Client = self._session.client(
-            service_name='s3',
-            endpoint_url='https://storage.yandexcloud.net'
+            service_name="s3",
+            endpoint_url="https://storage.yandexcloud.net"
         )
 
     def get_file(self, filename: str) -> StreamingBody:
@@ -35,9 +35,9 @@ class S3Manager:
             file_object = self._s3_client.get_object(
                 Bucket=BUCKET_NAME,
                 Key=filename
-            )['Body']
+            )["Body"]
         except Exception as ex:
-            raise ValueError(f'File not found: {filename}') from ex
+            raise ValueError(f"File not found: {filename}") from ex
 
         return file_object
 
@@ -53,7 +53,7 @@ class S3Manager:
         :raises ValueError: Если файл с таким именем уже существует
         """
         if not force and self._file_exists(filename):
-            raise ValueError(f'File already exists: {filename}')
+            raise ValueError(f"File already exists: {filename}")
 
         self._s3_client.upload_fileobj(
             Fileobj=content,
@@ -69,7 +69,7 @@ class S3Manager:
         :raises ValueError: Если файл с таким именем не существует
         """
         if not self._file_exists(filename):
-            raise ValueError(f'File not found: {filename}')
+            raise ValueError(f"File not found: {filename}")
 
         self._s3_client.delete_object(
             Bucket=BUCKET_NAME,
@@ -86,7 +86,7 @@ class S3Manager:
         :raises ValueError: Если файл с таким именем уже существует
         """
         if not self._file_exists(filename):
-            raise ValueError(f'File not found: {filename}')
+            raise ValueError(f"File not found: {filename}")
 
         self._s3_client.upload_fileobj(
             Fileobj=content,
@@ -100,7 +100,7 @@ class S3Manager:
         :return: BucketObjectsCollection объект
         :rtype: BucketObjectsCollection
         """
-        s3_resource = self._session.resource('s3')
+        s3_resource = self._session.resource("s3")
         s3_bucket = s3_resource.Bucket(name=BUCKET_NAME)
         bucket_objects_collection = s3_bucket.objects.all()
         return bucket_objects_collection
@@ -116,7 +116,7 @@ class S3Manager:
         :type filename: str
         :param content_type: Тип возвращаемого контента (audio/mp3, video/mp4, image/jpeg)
         :type content_type: str
-        :param content_disposition: Значение Content-Disposition ('inline' или 'attachment')
+        :param content_disposition: Значение Content-Disposition ("inline" или "attachment")
         :type content_disposition: str
         :param expiration: Время действия url в секундах (по умолчанию 1 час)
         :type expiration: int
@@ -129,15 +129,15 @@ class S3Manager:
         if not self._file_exists(filename):
             if default is not ...:
                 return default
-            raise ValueError(f'File not found: {filename}')
+            raise ValueError(f"File not found: {filename}")
 
         url = self._s3_client.generate_presigned_url(
-            'get_object',
+            "get_object",
             Params={
-                'Bucket': BUCKET_NAME,
-                'Key': filename,
-                'ResponseContentType': content_type,
-                'ResponseContentDisposition': content_disposition
+                "Bucket": BUCKET_NAME,
+                "Key": filename,
+                "ResponseContentType": content_type,
+                "ResponseContentDisposition": content_disposition
             },
             ExpiresIn=expiration
         )
@@ -157,7 +157,7 @@ class S3Manager:
         :type filename: str
         :param content_type: Тип возвращаемого контента (audio/mp3, video/mp4, image/jpeg)
         :type content_type: str
-        :param content_disposition: Значение Content-Disposition ('inline' или 'attachment')
+        :param content_disposition: Значение Content-Disposition ("inline" или "attachment")
         :type content_disposition: str
         :param expiration: Время действия url в секундах (по умолчанию 1 час)
         :type expiration: int
@@ -166,12 +166,12 @@ class S3Manager:
         """
 
         url = self._s3_client.generate_presigned_url(
-            'get_object',
+            "get_object",
             Params={
-                'Bucket': BUCKET_NAME,
-                'Key': filename,
-                'ResponseContentType': content_type,
-                'ResponseContentDisposition': content_disposition
+                "Bucket": BUCKET_NAME,
+                "Key": filename,
+                "ResponseContentType": content_type,
+                "ResponseContentDisposition": content_disposition
             },
             ExpiresIn=expiration
         )
@@ -257,31 +257,3 @@ class S3Manager:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._s3_client.close()
-
-# if __name__ == '__main__':
-#     s3_manager = S3Manager()
-#     file_name = "Love Today (Telugu) (Original Motion Picture Soundtrack).mp3"
-#     file_path = r"C:\Users\KUSLY\PycharmProjects\WorkDirectory\music_project\yalyceum_spotify\api\media\Love Today (Telugu) (Original Motion Picture Soundtrack).mp3"
-#     # Чтение файла и создание BytesIO
-#     with open(file_path, 'rb') as file:
-#         mp3_bytes = file.read()
-#         mp3_bytes_io = BytesIO(mp3_bytes)
-#
-#     # Загрузка файла в S3
-#     s3_manager.upload_file(file_name, mp3_bytes_io)
-
-
-# if __name__ == '__main__':
-#     s3_manager = S3Manager()
-#     file_name = "Love Today (Telugu) (Original Motion Picture Soundtrack).mp3"
-#     # Получаем файл из S3
-#     streaming_body = s3_manager.get_file(file_name)
-#
-#     # Указываем путь для сохранения локально
-#     local_file_path = "downloaded_" + file_name
-#
-#     # Сохраняем содержимое в файл
-#     with open(local_file_path, 'wb') as f:
-#         f.write(streaming_body.read())
-#
-#     print(f"Файл успешно сохранён как {local_file_path}")
