@@ -77,3 +77,41 @@ document.addEventListener('DOMContentLoaded', function() {
   // Инициализация иконок громкости
   updateVolumeIcon(currentVolume);
 });
+
+<script>
+const audio = document.getElementById('audio');
+const seekSlider = document.getElementById('seek-slider');
+const currentTimeEl = document.getElementById('current-time');
+const durationEl = document.getElementById('duration');
+
+// Обновляем длительность трека
+audio.addEventListener('loadedmetadata', () => {
+  seekSlider.max = Math.floor(audio.duration);
+  durationEl.textContent = formatTime(audio.duration);
+});
+
+// Обновляем положение ползунка при воспроизведении
+audio.addEventListener('timeupdate', () => {
+  seekSlider.value = Math.floor(audio.currentTime);
+  currentTimeEl.textContent = formatTime(audio.currentTime);
+});
+
+// Перемотка по ползунку
+seekSlider.addEventListener('input', () => {
+  audio.currentTime = seekSlider.value;
+});
+
+function togglePlay() {
+  if (audio.paused) {
+    audio.play();
+  } else {
+    audio.pause();
+  }
+}
+
+function formatTime(seconds) {
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60).toString().padStart(2, '0');
+  return `${mins}:${secs}`;
+}
+</script>

@@ -1,55 +1,129 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <div class="container mb-5">
-        <h1 class="mb-4">Добро пожаловать, {{ user.username }}!</h1>
+<div class="container mb-5">
+    <h1 class="mb-4">Добро пожаловать, {{ user.username }}!</h1>
 
-        <h4 class="mb-3">Саундтреки</h4>
-        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
-            {% for dct in res %}
-                <div class="col">
-                    <div class="card soundtrack-card position-relative">
-                        <img src="{{ dct['img_url'] }}" class="card-img-top" alt="{{ dct['track'].name }}">
+    <h4 class="mb-3">Саундтреки</h4>
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+        {% for dct in res %}
+        <div class="col">
+            <div class="card soundtrack-card position-relative">
+                <img src="{{ dct['img_url'] }}" class="card-img-top" alt="{{ dct['track'].name }}">
 
-                        <div class="card-body">
-                            <h5 class="card-title">{{ dct['track'].name }}</h5>
-                            {% if dct['track'].artist %}
-                            <p class="card-text text-muted small">{{ dct['track'].artist }}</p>
-                            {% endif %}
-                        </div>
-
-                        <div class="play-overlay position-absolute top-0 start-0 w-100 h-100 d-flex flex-row justify-content-center align-items-center gap-3">
-                            <button class="btn btn-success rounded-circle shadow play-btn" data-audio-id="audio-{{ dct['track'].id }}" title="Воспроизвести">
-                                <i class="bi bi-play-fill fs-4"></i>
-                            </button>
-
-                            {% if user_manager.is_favorite(user.id, dct['track'].id) %}
-                                <button class="btn btn-danger rounded-circle shadow favorite-btn" title="Убрать из избранного">
-                                    <i class="bi bi-heart-fill fs-5"></i>
-                                </button>
-                            {% else %}
-                                <button class="btn btn-outline-light rounded-circle shadow favorite-btn"
-                                        title="Добавить в избранное">
-                                    <i class="bi bi-heart fs-5"></i>
-                                </button>
-                            {% endif %}
-                        </div>
-
-                        <audio id="audio-{{ dct['track'].id }}" src="{{ dct['track_url'] }}"></audio>
-                    </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ dct['track'].name }}</h5>
+                    {% if dct['track'].artist %}
+                    <p class="card-text text-muted small">{{ dct['track'].artist }}</p>
+                    {% endif %}
                 </div>
 
-            {% endfor %}
+                <div class="play-overlay position-absolute top-0 start-0 w-100 h-100 d-flex flex-row justify-content-center align-items-center gap-3">
+                    <button class="btn btn-success rounded-circle shadow play-btn" data-audio-id="audio-{{ dct['track'].id }}" title="Воспроизвести">
+                        <i class="bi bi-play-fill fs-4"></i>
+                    </button>
+
+                    {% if user_manager.is_favorite(user.id, dct['track'].id) %}
+                    <button class="btn btn-danger rounded-circle shadow favorite-btn" title="Убрать из избранного">
+                        <i class="bi bi-heart-fill fs-5"></i>
+                    </button>
+                    {% else %}
+                    <button class="btn btn-outline-light rounded-circle shadow favorite-btn" title="Добавить в избранное">
+                        <i class="bi bi-heart fs-5"></i>
+                    </button>
+                    {% endif %}
+                </div>
+
+                <audio id="audio-{{ dct['track'].id }}" src="{{ dct['track_url'] }}"></audio>
+            </div>
         </div>
+        {% endfor %}
     </div>
+</div>
 
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-
-
+<!-- Глобальный плеер -->
+<div id="global-player" class="d-flex align-items-center gap-3 px-3 py-2">
+    <button id="global-play-btn" class="btn btn-light btn-sm rounded-circle">
+        <i id="global-play-icon" class="bi bi-play-fill"></i>
+    </button>
+    <div class="text-truncate small" id="global-track-name" style="max-width: 200px;">Ничего не играет</div>
+    <input type="range" id="global-seekbar" class="form-range" min="0" value="0">
+    <div id="global-time" class="small text-nowrap">0:00 / 0:00</div>
+</div>
 {% endblock %}
 
-
 {% block extra_js %}
+<script>
+let currentAudio = null;
+let seekbar = document.getElementById("global-seekbar");
+let timeDisplay = document.getElementById("global-time");
+let nameDisplay = document.getElementById("global-track-name");
+let globalPlayBtn = document.getElementById("global-play-btn");
+let globalPlayIcon = document.getElementById("global-play-icon");
 
+function formatTime(sec) {
+    sec = Math.floor(sec);
+    const min = Math.floor(sec / 60);
+    const s = String(sec % 60).padStart(2, '0');
+    return `${min}:${s}`;
+}
+
+// Управление ползунком вручную
+seekbar.addEventListener("input", () => {
+    if (currentAudio) {
+        currentAudio.currentTime = seekbar.value;
+    }
+});
+
+// Обработка клика по play-кнопке в карточках
+document.querySelectorAll(".play-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+        const audioId = btn.dataset.audioId;
+        const audio = document.getElementById(audioId);
+        const trackName = btn.closest(".card").querySelector(".card-title").textContent;
+
+        if (currentAudio && currentAudio !== audio) {
+            currentAudio.pause();
+            currentAudio.currentTime = 0;
+        }
+
+        if (audio.paused) {
+            audio.play();
+            currentAudio = audio;
+            nameDisplay.textContent = trackName;
+            globalPlayIcon.className = "bi bi-pause-fill";
+        } else {
+            audio.pause();
+            globalPlayIcon.className = "bi bi-play-fill";
+        }
+
+        audio.addEventListener("loadedmetadata", () => {
+            seekbar.max = Math.floor(audio.duration);
+            timeDisplay.textContent = `0:00 / ${formatTime(audio.duration)}`;
+        });
+
+        audio.addEventListener("timeupdate", () => {
+            seekbar.value = Math.floor(audio.currentTime);
+            timeDisplay.textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration)}`;
+        });
+
+        audio.addEventListener("ended", () => {
+            globalPlayIcon.className = "bi bi-play-fill";
+        });
+    });
+});
+
+// Глобальная кнопка play/pause
+globalPlayBtn.addEventListener("click", () => {
+    if (currentAudio) {
+        if (currentAudio.paused) {
+            currentAudio.play();
+            globalPlayIcon.className = "bi bi-pause-fill";
+        } else {
+            currentAudio.pause();
+            globalPlayIcon.className = "bi bi-play-fill";
+        }
+    }
+});
+</script>
 {% endblock %}

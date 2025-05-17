@@ -105,3 +105,25 @@ h4 {
 .change-avatar-btn:hover {
     opacity: 1;
 }
+#global-player {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 52px;
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+    box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.05);
+    z-index: 1050;
+}
+
+#global-seekbar {
+    flex: 1;
+    margin: 0 8px;
+    min-width: 120px;
+    cursor: pointer;
+}
+
+#global-track-name {
+    max-width: 180px;
+}
