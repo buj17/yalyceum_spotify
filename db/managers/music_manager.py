@@ -116,4 +116,4 @@ class MusicManager:
         :return: Список 5 случайных, не повторяющихся, объектов модели Music
         :rtype: list[type[Music]]
         """
-        return sample(self.db_session.query(Music).all(), 5)
+        return sample(self.db_session.query(Music).all(), 16)
