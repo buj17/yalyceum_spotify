@@ -66,8 +66,8 @@ def redirect_to_login():
 
 
 def urls_dictionary_getter(tracks):
-    tracks = [track.id for track in tracks]
-    urls = music_manager.get_music_url_pairs(*tracks)
+    soundtracks = [track.id for track in tracks]
+    urls = music_manager.get_music_url_pairs(*soundtracks)
     res = [{'track': track, 'track_url': track_url, 'img_url':img_url} for track, (track_url, img_url) in zip(tracks, urls)]
     return res
 
@@ -90,9 +90,9 @@ def search():
         print(type(result))
     else:
         result = []
-
+    res = urls_dictionary_getter(result)
     return render_template('search.html', user=current_user, query=query, soundtracks=result, title='Поиск',
-                           user_manager=user_manager, music_manager=music_manager)
+                           user_manager=user_manager, music_manager=music_manager, res=res)
 
 
 @app.route('/account')
