@@ -2,7 +2,7 @@
 
 ## Создатели:
 
-* _MrToxic-png_
+* _lex42 (MrToxic-png)_
 * _buj17_
 * _Semuk_
 
